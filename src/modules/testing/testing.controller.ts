@@ -1,22 +1,21 @@
-import { Controller, Delete, HttpCode, HttpStatus } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/mongoose';
+import { Controller, Delete, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
-import { Connection } from 'mongoose';
+import { Pool } from 'pg';
 
 @SkipThrottle()
 @Controller('testing')
 export class TestingController {
   constructor(
-    @InjectConnection() private readonly databaseConnection: Connection,
+    @Inject('PG_POOL') private readonly db: Pool,
   ) {}
 
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAll() {
-    const collections = await this.databaseConnection.listCollections();
+    const tables = ['users', 'emailConfirmation', 'securityDevice']; //, 'blogs', 'posts', 'comments' 
 
-    const promises = collections.map((collection) =>
-      this.databaseConnection.collection(collection.name).deleteMany({}),
+    const promises = tables.map((table) =>
+      this.db.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE;`)
     );
     await Promise.all(promises);
 

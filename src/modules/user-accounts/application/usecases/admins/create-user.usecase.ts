@@ -1,9 +1,11 @@
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { CreateUserDto } from "../../../../user-accounts/dto/create-user.dto";
 import { UsersRepository } from "../../../../user-accounts/infrastructure/users.repository";
-import { UsersFactory } from "../../factories/users.factory";
 import { DomainException } from "../../../../../core/exceptions/domain-exceptions";
 import { DomainExceptionCode } from "../../../../../core/exceptions/domain-exception-codes";
+import { UsersFactory } from "../../factories/users.factory";
+import { EmailConfirmationFactory } from "../../factories/email-confirmation.factory";
+import { EmailConfirmationRepository } from "src/modules/user-accounts/infrastructure/email-confirmation.repository";
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}
@@ -18,6 +20,8 @@ export class CreateUserUseCase
   constructor(
     private usersRepository: UsersRepository,
     private usersFactory: UsersFactory,
+    private emailConfirmationFactory: EmailConfirmationFactory,
+    private emailConfirmationRepository: EmailConfirmationRepository,
   ) {}
 
   async execute({ dto }: CreateUserCommand): Promise<string> {
@@ -47,12 +51,11 @@ export class CreateUserUseCase
       });
       }
     }
-
     const user = await this.usersFactory.create(dto);
+    const userId = await this.usersRepository.create(user);
+    const emailConfirmation = await this.emailConfirmationFactory.create({ userId: Number(userId), isEmailConfirmed: true})
+    await this.emailConfirmationRepository.save(emailConfirmation);
 
-    user.isEmailConfirmed = true;
-    await this.usersRepository.save(user);
-
-    return user._id.toString();
+    return userId;//user._id.toString();
   }
 }

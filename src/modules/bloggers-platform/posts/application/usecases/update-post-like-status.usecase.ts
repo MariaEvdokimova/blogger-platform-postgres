@@ -64,7 +64,7 @@ export class UpdatePostLikeStatusUseCase
     const users = await this.usersRepository.findByUserIds( userIds ) || [];
 
     const usersMap = new Map< string, string>(
-      users.map(user => [user._id.toString(), user.login || ''])
+      users.map(user => [user.id.toString(), user.login || ''])
     );
   
     const newestLikes = lastThreeLikes.map( lastLike => {

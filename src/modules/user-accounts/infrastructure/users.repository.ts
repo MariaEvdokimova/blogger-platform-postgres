@@ -1,25 +1,72 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { User, UserDocument, UserModelType } from "../domain/user.entity";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Pool } from 'pg';
+import { User } from "../domain/user.entity";
+import { UserModelType } from "../domain/mongoose/user.entity";
 import { Types } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
+import { UserMapper } from "../domain/mappers/user.mapper";
 
 @Injectable()
 export class UsersRepository {
 
-  constructor(@InjectModel(User.name) private UserModel: UserModelType) {}
+  constructor(
+    @Inject('PG_POOL') private readonly db: Pool,
+    @InjectModel(User.name) private UserModel: UserModelType
+  ) {}
 
-  async findById(id: string): Promise<UserDocument | null> {
-    return this.UserModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async create(user: User): Promise<string> {
+    const result = await this.db.query(
+      `
+      INSERT INTO public.users (
+        login, 
+        "passwordHash", 
+        email, 
+        "createdAt", 
+        "updatedAt")
+        VALUES( $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id;
+      `,
+      [
+        user.login,
+        user.passwordHash,
+        user.email,
+      ]
+    );
+//TODO добавить норм обработку ошибки
+    if (!result.rows || result.rows.length === 0 || !result.rows[0].id) {
+      throw new Error('Failed to create user: no ID returned from database');
+    }
+
+    return result.rows[0].id.toString();
   }
 
-  async save(user: UserDocument): Promise<UserDocument> {
-    return await user.save();
+  async softDelete(id: string): Promise<void> {
+    await this.db.query(
+      `
+      UPDATE public.users
+      SET "deletedAt" = CURRENT_TIMESTAMP,
+        "updatedAt" = CURRENT_TIMESTAMP
+       WHERE id = $1
+       RETURNING id;`,
+      [id]
+    );
   }
 
-  async findOrNotFoundFail(id: string): Promise<UserDocument> {
+  async findById(id: string) {
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        *
+      FROM 
+        public.users
+      WHERE id = $1 AND "deletedAt" IS NULL;`,
+      [ id ]
+    );
+
+    return result.rows[0] ?? null
+  }
+
+  async findOrNotFoundFail(id: string): Promise<User> {
     const user = await this.findById(id);
 
     if (!user) {
@@ -27,28 +74,55 @@ export class UsersRepository {
       throw new NotFoundException('user not found');
     }
 
-    return user;
+    return UserMapper.fromDb(user);
   }
 
   async doesExistByLoginOrEmail(
     login: string,
     email: string
-  ): Promise< UserDocument | null> {
-    return this.UserModel.findOne({
-      $or: [{ email }, { login }],
-      deletedAt: null
-    });
+  ): Promise<User | null> {
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        id, login, "passwordHash", email, "deletedAt", "createdAt", "updatedAt"
+      FROM 
+        public.users
+      WHERE (login = $1 OR email = $2) AND "deletedAt" IS NULL;`,
+      [ login, email ]
+    );
+
+    const user = result.rows[0] ?? null;
+    return user ? UserMapper.fromDb(user) : null;
   }
 
-  async findByEmail( email: string ): Promise<UserDocument | null> {
-    return this.UserModel.findOne({ email, deletedAt: null });
+  async findByEmail( email: string ): Promise<User | null> {
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        id, login, "passwordHash", email, "deletedAt", "createdAt", "updatedAt"
+      FROM 
+        public.users
+      WHERE "email" = $1 AND "deletedAt" IS NULL
+      LIMIT 1;`,
+      [ email ]
+    );
+
+    const user = result.rows[0] ?? null;
+    return user ? UserMapper.fromDb(user) : null;
   }
 
-  async findUserByConfirmationCode ( code: string ): Promise<UserDocument | null> {
-    return this.UserModel.findOne({ "confirmationCode": code, deletedAt: null });
+  async updatePasswordHash( passwordHash: string, id: string ): Promise<void> {
+    await this.db.query(
+      `
+      UPDATE public.users
+      SET "passwordHash" = $1,
+        "updatedAt" = CURRENT_TIMESTAMP
+       WHERE id = $2;`,
+      [ passwordHash, id ]
+    );
   }
 
-  async findByUserIds(userIds: Types.ObjectId[]): Promise<UserDocument[]>{
+  async findByUserIds(userIds: Types.ObjectId[]): Promise<User[]>{
     return this.UserModel.find({
       _id: { $in: userIds }
     }).exec();

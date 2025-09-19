@@ -1,34 +1,111 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { SecurityDevice, SecurityDeviceDocument, SecurityDeviceModelType } from "../domain/security-device.entity";
-import mongoose, { Types } from "mongoose";
-import { DomainException } from "src/core/exceptions/domain-exceptions";
-import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
-
+import { Inject, Injectable } from "@nestjs/common";
+import { Pool } from 'pg';
+import { SecurityDevice } from "../domain/security-device.entity";
+import { SecurityDeviceMapper } from "../domain/mappers/security-device.mapper";
 
 @Injectable()
 export class SecurityDeviceRepository {
 
-  constructor(@InjectModel(SecurityDevice.name) private SecurityDeviceModel: SecurityDeviceModelType) {}
+  constructor(
+    @Inject('PG_POOL') private readonly db: Pool,
+  ) {}
 
-  async save(device: SecurityDeviceDocument): Promise<SecurityDeviceDocument> {
-    return await device.save();
+  async save(dto: SecurityDevice): Promise<string> {
+    if ( dto.id ) {
+      const result = await this.db.query(
+        `
+        UPDATE public."securityDevice"
+        SET 
+          "userId"=$1, 
+          "deviceName"=$2, 
+          "deviceId"=$3, 
+          ip=$4, 
+          iat=$5, 
+          "exp"=$6, 
+          "updatedAt"=CURRENT_TIMESTAMP
+        WHERE id=$7
+        RETURNING id; `,
+        [
+          Number(dto.userId),
+          dto.deviceName,
+          dto.deviceId,
+          dto.ip,
+          dto.iat,
+          dto.exp,
+          dto.id
+        ]
+      );
+      return result.rows[0].id.toString();
+    } 
+    const result = await this.db.query(
+      `
+      INSERT INTO public."securityDevice" (
+        "userId", 
+        "deviceName", 
+        "deviceId", 
+        ip, 
+        iat, 
+        "exp", 
+        "createdAt", 
+        "updatedAt"
+      )
+        VALUES( $1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id;
+      `,
+      [
+        Number(dto.userId),
+        dto.deviceName,
+        dto.deviceId,
+        dto.ip,
+        dto.iat,
+        dto.exp
+      ]
+    );
+    return result.rows[0].id.toString();
   }
 
-  async findByDeviceIdAndUserId({ deviceId, userId }: {deviceId: string, userId: string}): Promise<SecurityDeviceDocument | null> {
-    this._checkObjectId( userId );
-    this._checkObjectId( deviceId );
-    
-    return this.SecurityDeviceModel.findOne({
-      deviceId: new Types.ObjectId( deviceId ),
-      userId
-    });
+  async updateIatAndExp( iat: number, exp: number, deviceId: string ): Promise<void>{
+    const iatDTFormat = new Date(iat * 1000);
+    const expDTFormat = new Date(exp * 1000);
+
+    await this.db.query(
+      `
+      UPDATE public."securityDevice"
+      SET "iat" = $1,
+        "exp" = $2,
+        "updatedAt" = CURRENT_TIMESTAMP
+       WHERE "deviceId" = $3
+       RETURNING id;`,
+      [iatDTFormat, expDTFormat, deviceId]
+    );
   }
 
-  async findUserByDeviceId( deviceId: string):  Promise< SecurityDeviceDocument | null> {
-    this._checkObjectId( deviceId );
-    
-    return this.SecurityDeviceModel.findOne({ deviceId: new Types.ObjectId(deviceId) });
+  async findByDeviceIdAndUserId({ deviceId, userId }: { deviceId: string, userId: string }): Promise<SecurityDevice | null> {
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        id, "userId", "deviceName", "deviceId", ip, iat, "exp", "createdAt", "updatedAt"
+      FROM 
+        public."securityDevice"
+      WHERE "deviceId" = $1 AND "userId" = $2
+      LIMIT 1;`,
+      [ deviceId, Number(userId)]
+    );
+
+    const securityDevice = result.rows[0] ?? null;
+    return securityDevice ? SecurityDeviceMapper.fromDb( securityDevice ) : null;
+
+  }
+
+  async findUserByDeviceId( deviceId: string):  Promise< SecurityDevice | null> {
+    const result = await this.db.query(
+      `SELECT * FROM public."securityDevice"
+      WHERE "deviceId" = $1
+      LIMIT 1`,
+      [deviceId]
+    );
+
+  return result.rows[0] || null;
   }
 
   async isSessionValid (
@@ -37,51 +114,48 @@ export class SecurityDeviceRepository {
     iat: number,
     exp: number
   ): Promise<boolean> {
-    const session = await this.SecurityDeviceModel.findOne({
-      deviceId: new Types.ObjectId(deviceId),
-      userId,
-      iat: new Date(iat * 1000), // перевод из секунд в миллисекунды,
-      exp: new Date(exp * 1000), // перевод из секунд в миллисекунды
-    });
+    const result = await this.db.query(
+      `SELECT "exp"
+      FROM public."securityDevice"
+      WHERE "userId" = $1
+        AND "deviceId" = $2
+        AND "iat" = to_timestamp($3)
+        AND "exp" = to_timestamp($4)
+      LIMIT 1`,
+      [userId, deviceId, iat, exp]
+    );
 
+    const session = result.rows[0];
     if (!session || !session.exp) return false;
 
-    const now = Date.now();
+    const now = new Date();
 
-    return session.exp.getTime() > now;
+    return session.exp.getTime() > now.getTime();
   }
 
   async deleteById ( userId: string, deviceId: string ): Promise<number> {
-    this._checkObjectId( deviceId );
-        
-    const deleteResult = await this.SecurityDeviceModel.deleteOne({ 
-      userId, 
-      deviceId: new Types.ObjectId( deviceId ) 
-    });
-    return deleteResult.deletedCount;
+    const result = await this.db.query(
+      `
+      DELETE FROM public."securityDevice"
+      WHERE 
+        "userId" = $1 
+        AND "deviceId" = $2;
+      `,
+      [ userId, deviceId ]
+    );
+
+    return result.rowCount;
   }
 
   async deleteOtherSessions ( userId: string, deviceId: string ): Promise<number> {
-    this._checkObjectId( deviceId );
-    
-    const deleteResult = await this.SecurityDeviceModel.deleteMany({ 
-      userId, 
-      deviceId: { 
-        $ne: new Types.ObjectId( deviceId ) 
-      } 
-    });
+    const result = await this.db.query(
+      `DELETE FROM public."securityDevice"
+      WHERE "userId" = $1
+        AND "deviceId" <> $2`,
+      [userId, deviceId]
+    );
 
-    return deleteResult.deletedCount;
+    return result.rowCount;
   }
 
-  private _checkObjectId(id: string) {
-    const isValidId = mongoose.isValidObjectId(id);
-    if ( !isValidId ) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'not fouund',
-      });
-    }
-    return isValidId;
-  }
 }

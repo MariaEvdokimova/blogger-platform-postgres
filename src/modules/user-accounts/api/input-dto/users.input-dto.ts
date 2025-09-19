@@ -1,6 +1,6 @@
 import { IsStringWithTrim } from "../../../../core/decorators/validation/is-string-with-trim";
 import { emailConstraints, loginConstraints, passwordConstraints } from "../../domain/user.entity";
-import { Matches } from "class-validator";
+import { IsEmail, Matches } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateUserInputDto {
@@ -27,6 +27,7 @@ export class CreateUserInputDto {
     description: 'must be unique'
   })
   @IsStringWithTrim(emailConstraints.minLength, emailConstraints.maxLength)
-  @Matches(emailConstraints.match)
+  @IsEmail()
+  //@Matches(emailConstraints.match)
   email: string;
 }

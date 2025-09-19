@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 
 export class CreateSecurityDeviceDto {
-  userId: string;
-  deviceId: Types.ObjectId;
+  userId: number;
+  deviceId: string;
   deviceName: string;
   ip: string;
   iat: Date | null;

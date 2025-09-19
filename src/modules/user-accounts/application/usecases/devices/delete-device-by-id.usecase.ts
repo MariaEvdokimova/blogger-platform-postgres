@@ -31,7 +31,7 @@ export class DeleteDeviceByIdUseCase
       });
     }
 
-    if ( DeviceIdCheck.userId !== dto.userId ){
+    if ( DeviceIdCheck.userId.toString() !== dto.userId ){
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'forbidden',

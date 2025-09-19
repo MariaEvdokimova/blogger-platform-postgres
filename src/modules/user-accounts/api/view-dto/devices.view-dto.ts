@@ -1,12 +1,10 @@
-import { SecurityDeviceDocument } from "../../domain/security-device.entity";
-
 export class DeviceViewDto {
   ip: string;
   title: string;
   lastActiveDate: string;
   deviceId: string;
 
-  static mapToView(device: SecurityDeviceDocument): DeviceViewDto {
+  static mapToView(device): DeviceViewDto {
     const dto = new DeviceViewDto();
 
     dto.ip = device.ip;

@@ -3,7 +3,7 @@ import { ApiParam, ApiSecurity } from "@nestjs/swagger";
 import { DeviceViewDto } from "./view-dto/devices.view-dto";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { GetSecurityDevicesQuery } from "../application/queries/get-security-devices.query";
-import { ObjectIdValidationPipe } from "src/core/pipes/object-id-validation-transformation-pipe.service";
+import { ObjectIdValidationPipe, ObjectUUIdValidationPipe } from "src/core/pipes/object-id-validation-transformation-pipe.service";
 import { DeleteDevicesCommand } from "../application/usecases/devices/delete-devices.usecase";
 import { DeleteDeviceByIdCommand } from "../application/usecases/devices/delete-device-by-id.usecase";
 import { SecurityDeviceContextDto } from "../dto/security-device-context.dto";
@@ -40,7 +40,7 @@ export class SecurityDevicesController {
   @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteDeviceById(
-    @Param('deviceId', ObjectIdValidationPipe) deviceId: string, 
+    @Param('deviceId', ObjectUUIdValidationPipe) deviceId: string, 
     @ExtractSecurityDeviceFromRequest() context: SecurityDeviceContextDto
   ): Promise<void>  {
     return this.commandBus.execute(new DeleteDeviceByIdCommand({ userId: context.userId, deviceId }));

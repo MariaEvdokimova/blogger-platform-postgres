@@ -21,7 +21,6 @@ import { RegistrationEmailResendingCommand } from "../application/usecases/users
 import { GetMeQuery } from "../application/queries/get-me.query";
 import { RequestMetadata } from "../guards/decorators/request-metadata.decorator";
 import { RequestMetadataDto } from "../dto/request-metadata.dto";
-import { RateLimitGuard } from '../guards/rate-limit.guard';
 import { CookieService } from '../application/services/cookie.service';
 import { JwtRefreshTokenGuard } from '../guards/refresh-token/jwt-refresh-token.guard';
 import { ExtractSecurityDeviceFromRequest } from '../guards/decorators/param/extract-security-device-from-request.decorator';
@@ -38,12 +37,10 @@ export class AuthController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  //@UseGuards(RateLimitGuard)
   @Post('login')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
-  //swagger doc
   @ApiBody({
     schema: {
       type: 'object',
@@ -83,51 +80,41 @@ export class AuthController {
 
     CookieService.setRefreshTokenCookie( response, refreshToken );
     return { accessToken };
-  }
-  
-  //@UseGuards(RateLimitGuard)
+  }  
+
   @Post('password-recovery')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.NO_CONTENT)
   passwordRecovery(@Body() body: PasswordRecoveryInputDto): Promise<void>{
     return this.commandBus.execute(new PasswordRecoveryCommand( body ));
-    //return this.authService.passwordRecovery( body );
   }
 
-  //@UseGuards(RateLimitGuard)
   @Post('new-password')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.NO_CONTENT)
   newPassword (@Body() body: NewPasswordInputDto): Promise<void>{
     return this.commandBus.execute(new NewPasswordCommand( body ));
-//    return this.authService.newPassword( body );
   }
 
-  //@UseGuards(RateLimitGuard)
   @Post('registration')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.NO_CONTENT)
   registration(@Body() body: CreateUserInputDto): Promise<void> {
     return this.commandBus.execute(new RegisterUserCommand(body));
-    //return this.usersService.registerUser(body);
   }
   
-  //@UseGuards(RateLimitGuard)
   @Post('registration-confirmation')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.NO_CONTENT)
   registrationConfirmation(@Body() body: RegistrationConfirmationInputDto): Promise<void> {
     return this.commandBus.execute(new RegistrationConfirmationCommand( body ));
-    //return this.usersService.registrationConfirmation(body);
   }
 
-  //@UseGuards(RateLimitGuard)
   @Post('registration-email-resending')
   @SkipThrottle({ default: false }) // Rate limiting is applied to this route.
   @HttpCode(HttpStatus.NO_CONTENT)
   registrationEmailResending(@Body() body: RegistrationEmailResendingInputDto): Promise<void> {
     return this.commandBus.execute(new RegistrationEmailResendingCommand( body ));
-//    return this.usersService.registrationEmailResending(body);
   }
 
   @ApiSecurity('refreshToken') 
@@ -147,6 +134,5 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
     return this.queryBus.execute( new GetMeQuery( user )); 
-    //this.authQueryRepository.me(user.id);
   }
 }

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/user.entity';
+import { User, UserSchema } from './domain/mongoose/user.entity';
 import { UsersController } from './api/users.controller';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQueryRepository } from './infrastructure/query/users.query-repository';
@@ -23,25 +23,26 @@ import { RegisterUserUseCase } from './application/usecases/users/register-user.
 import { RegistrationConfirmationUseCase } from './application/usecases/users/registration-confirmation.usecase';
 import { RegistrationEmailResendingUseCase } from './application/usecases/users/registration-email-resending.usecase';
 import { UsersFactory } from './application/factories/users.factory';
+import { UsersFactory as UsersFactoryM } from './application/factories/mongoose/users.factory';
 import { PasswordRecoveryUseCase } from './application/usecases/users/password-recovery.usecase';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetUsersQueryHandler } from './application/queries/get-users.query';
 import { GetMeQueryHandler } from './application/queries/get-me.query';
 import { AuthService } from './application/services/auth.service';
-import { RateLimit, RateLimitSchema } from './domain/rate-limit.entity';
-import { RateLimitRepository } from './infrastructure/rate-limit.repository';
 import { UserAccountsConfig } from './config/user-accounts.config';
 import { DeleteDeviceByIdUseCase } from './application/usecases/devices/delete-device-by-id.usecase';
 import { DeleteDevicesUseCase } from './application/usecases/devices/delete-devices.usecase';
 import { RefreshTokenUseCase } from './application/usecases/users/refresh-token.usecase';
 import { GetSecurityDevicesQueryHandler } from './application/queries/get-security-devices.query';
-import { SecurityDevice, SecurityDeviceSchema } from './domain/security-device.entity';
 import { SecurityDevicesController } from './api/security-devices.controller';
 import { SecurityDevicesQueryRepository } from './infrastructure/query/security-devices.query-repository';
 import { SecurityDeviceRepository } from './infrastructure/security-devices.repository';
 import { CookieService } from './application/services/cookie.service';
 import { SecurityDevicesFactory } from './application/factories/security-devices.factory';
 import { LogoutUseCase } from './application/usecases/users/logout-user.usecase';
+import { SecurityDevice, SecurityDeviceSchema } from './domain/mongoose/security-device.entity';
+import { EmailConfirmationRepository } from './infrastructure/email-confirmation.repository';
+import { EmailConfirmationFactory } from './application/factories/email-confirmation.factory';
  
 const commandHandlers = [
   CreateUserUseCase,
@@ -69,7 +70,6 @@ const queryHandlers = [
     CqrsModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
-      { name: RateLimit.name, schema: RateLimitSchema},
       { name: SecurityDevice.name, schema: SecurityDeviceSchema}, 
     ]),
     NotificationsModule,
@@ -78,7 +78,6 @@ const queryHandlers = [
   providers: [    
     ...commandHandlers,
     ...queryHandlers,
-    //UsersService,
     UsersRepository,
     {
       provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -110,13 +109,15 @@ const queryHandlers = [
     EmailExamples,
     JwtStrategy,
     LocalStrategy,
-    UsersFactory,
-    RateLimitRepository,
+    UsersFactory,    
+    UsersFactoryM, //!!!!!!!!!!!!
     UserAccountsConfig,
     SecurityDevicesQueryRepository,
     SecurityDeviceRepository,
     CookieService,
-    SecurityDevicesFactory
+    SecurityDevicesFactory,
+    EmailConfirmationFactory,
+    EmailConfirmationRepository,
   ],
   exports: [JwtStrategy, UsersRepository],
 })
