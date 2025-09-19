@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { CryptoService } from "../services/crypto.service";
-import { CreateUserDto } from "../../dto/create-user.dto";
-import { User } from "../../domain/user.entity";
+import { CryptoService } from "../../services/crypto.service";
+import { InjectModel } from "@nestjs/mongoose";
+import { User, UserDocument, UserModelType } from "../../../domain/mongoose/user.entity";
+import { CreateUserDto } from "../../../dto/create-user.dto";
 
 @Injectable()
 export class UsersFactory {
@@ -10,8 +11,10 @@ export class UsersFactory {
 
   constructor(
     private readonly cryptoService: CryptoService,
+    @InjectModel(User.name)
+    private UserModel: UserModelType,
   ) {}
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto): Promise<UserDocument> {
     const passwordHash = await this.createPasswordHash(dto);
     const user = this.createUserInstance(dto, passwordHash);
 
@@ -25,8 +28,8 @@ export class UsersFactory {
     return passwordHash;
   }
 
-  private createUserInstance(dto: CreateUserDto, passwordHash: string): User {
-    const user = User.createInstance({
+  private createUserInstance(dto: CreateUserDto, passwordHash: string) {
+    const user = this.UserModel.createInstance({
       email: dto.email,
       login: dto.login,
       passwordHash: passwordHash,

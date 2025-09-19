@@ -58,12 +58,7 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
 
     const refreshTokenPayload = await this.refreshTokenContext.verify(refreshToken);
     
-    device.updateIatAndExp(
-      refreshTokenPayload?.iat,
-      refreshTokenPayload?.exp
-    );
-
-    await this.securityDeviceRepository.save( device );
+    await this.securityDeviceRepository.updateIatAndExp( refreshTokenPayload?.iat, refreshTokenPayload?.exp, dto.deviceId );
   
     //console.log('', refreshToken);
 

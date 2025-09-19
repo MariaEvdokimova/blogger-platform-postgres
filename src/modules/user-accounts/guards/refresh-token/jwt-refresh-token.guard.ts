@@ -5,7 +5,6 @@ import { DomainException } from "src/core/exceptions/domain-exceptions";
 import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 import { JwtService } from "@nestjs/jwt";
 import { REFRESH_TOKEN_STRATEGY_INJECT_TOKEN } from "../../constants/auth-tokens.inject-constants";
-import { Types } from "mongoose";
 import { SecurityDeviceRepository } from "../../infrastructure/security-devices.repository";
 
 @Injectable()
@@ -38,18 +37,11 @@ console.log('!!!!!!refreshToken ', refreshToken);
 
     console.log('*****************refreshToken ', refreshToken);
             
-//    const { deviceId, iat, exp } = payload;
     const id = payload?.id;
     const deviceId = payload?.deviceId;
     const iat = payload?.iat;
     const exp = payload?.exp;
 
-  /*  console.log('payload ', payload);
-      console.log('userId ', id)
-      console.log('deviceId ', deviceId)
-      console.log('iat ', iat)
-      console.log('exp ', exp)
-*/
     // Проверка обязательных полей
     if (!iat || !exp) {
       console.log('3')
@@ -60,13 +52,14 @@ console.log('!!!!!!refreshToken ', refreshToken);
     }
 
     // Проверка корректности deviceId
-    if (!Types.ObjectId.isValid(deviceId)) {
+    /*if (!Types.ObjectId.isValid(deviceId)) {
       console.log('4')
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: 'Unauthorized',
       });
     }
+    */
 
     // Поиск сессии в БД
     const isValidSession = await this.securityDeviceRepository.isSessionValid( id, deviceId, iat, exp );

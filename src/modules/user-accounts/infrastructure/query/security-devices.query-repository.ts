@@ -1,22 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { SecurityDevice, SecurityDeviceModelType } from '../../domain/security-device.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { Pool } from 'pg';
 import { DeviceViewDto } from '../../api/view-dto/devices.view-dto';
 
 @Injectable()
 export class SecurityDevicesQueryRepository {
   constructor(
-      @InjectModel(SecurityDevice.name)
-      private SecurityDeviceModel: SecurityDeviceModelType,
-    ) {}
+    @Inject('PG_POOL') private readonly db: Pool,
+  ) {}
 
   async getDevices(userId: string): Promise<DeviceViewDto[]> {
-    const devices = await this.SecurityDeviceModel.find({
-      userId,
-      exp: { $gt: Date.now() } 
-    });
+    const now = new Date();
 
-    return devices.map(DeviceViewDto.mapToView);
+    const result = await this.db.query(
+      `
+      SELECT 
+        "deviceId", 
+        "deviceName", 
+        ip, 
+        "iat"
+      FROM public."securityDevice"
+      WHERE "userId" = $1 AND "exp" > $2;
+      `,
+      [userId, now]
+    );
+
+    return result.rows.map(DeviceViewDto.mapToView);
   }
 }
 

@@ -13,6 +13,7 @@ import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     CoreModule,
     NotificationsModule,
     configModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [

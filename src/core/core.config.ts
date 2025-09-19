@@ -53,6 +53,36 @@ export class CoreConfig {
   })
   sendInternalServerErrorDetails: boolean;
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable PG_HOST, example: ep-empty-cake-adgp9lha-pooler.c-2.us-east-1.aws.neon.tech',
+  })
+  pgHost: string;
+
+  @IsNumber( {}, {
+      message: 'Set Env variable PG_PORT, example: 5432',
+    },
+  )
+  pgPort: number;
+
+  @IsNotEmpty({
+      message:
+        'Set Env variable PG_USER, example: neondb_owner',
+    })
+    pgUser: string;
+
+    @IsNotEmpty({
+      message:
+        'Set Env variable PG_PASSWORD',
+    })
+    pgPassword: string;
+
+    @IsNotEmpty({
+      message:
+        'Set Env variable PG_DATEBASE',
+    })
+    pgDatebase: string;
+
   constructor(private configService: ConfigService<any, true>) {
     this.port = Number(this.configService.get('PORT'));
     this.mongoURI = this.configService.get('MONGO_URI');
@@ -68,6 +98,12 @@ export class CoreConfig {
       this.configService.get('SEND_INTERNAL_SERVER_ERROR_DETAILS'),
     ) as boolean;
     
+    this.pgHost = this.configService.get('PG_HOST');
+    this.pgPort = Number(this.configService.get('PG_PORT'));
+    this.pgUser = this.configService.get('PG_USER');
+    this.pgPassword = this.configService.get('PG_PASSWORD');
+    this.pgDatebase = this.configService.get('PG_DATEBASE');
+   
     configValidationUtility.validateConfig(this);
   }
 }

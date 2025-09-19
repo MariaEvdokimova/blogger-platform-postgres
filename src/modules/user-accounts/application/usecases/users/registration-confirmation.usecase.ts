@@ -3,6 +3,7 @@ import { DomainExceptionCode } from "../../../../../core/exceptions/domain-excep
 import { DomainException } from "../../../../../core/exceptions/domain-exceptions";
 import { RegistrationConfirmationInputDto } from "../../../../user-accounts/api/input-dto/registration-confirmation.input-dto";
 import { UsersRepository } from "../../../../user-accounts/infrastructure/users.repository";
+import { EmailConfirmationRepository } from "src/modules/user-accounts/infrastructure/email-confirmation.repository";
 
 export class RegistrationConfirmationCommand {
   constructor(public dto: RegistrationConfirmationInputDto) {}
@@ -14,14 +15,15 @@ export class RegistrationConfirmationUseCase
 {
   constructor(
     private usersRepository: UsersRepository,
+    private emailConfirmationRepository: EmailConfirmationRepository,
   ) {}
 
   async execute({ dto }: RegistrationConfirmationCommand): Promise<void> {
-    const user = await this.usersRepository.findUserByConfirmationCode( dto.code );
-    if ( !user 
-      || user.isEmailConfirmed === true
-      || user.confirmationCode !== dto.code
-      ||( user.expirationDate && user.expirationDate < new Date())
+    const emailConfirmation = await this.emailConfirmationRepository.findUserByConfirmationCode( dto.code );
+    if ( !emailConfirmation 
+      || emailConfirmation.isEmailConfirmed === true
+      || emailConfirmation.confirmationCode !== dto.code
+      ||( emailConfirmation.expirationDate && emailConfirmation.expirationDate < new Date())
     ) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
@@ -33,8 +35,8 @@ export class RegistrationConfirmationUseCase
       });
     }
 
-    user.updateEmailConfirmed();
-    await this.usersRepository.save( user );
+    emailConfirmation.isEmailConfirmed = true;
+    await this.emailConfirmationRepository.save( emailConfirmation );
   }
 }
     

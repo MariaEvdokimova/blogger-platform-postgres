@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 export class CreateSecurityDeviceDto {
   userId: string;
-  deviceId: Types.ObjectId;
+  deviceId: string;
   deviceName: string;
   ip: string;
   iat?: number;

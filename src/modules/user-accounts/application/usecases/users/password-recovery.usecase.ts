@@ -1,6 +1,6 @@
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { InjectModel } from "@nestjs/mongoose";
-import { User } from "../../../../user-accounts/domain/user.entity";
+import { User } from "../../../../user-accounts/domain/mongoose/user.entity";
 import { UsersRepository } from "../../../../user-accounts/infrastructure/users.repository";
 import { DomainException } from "../../../../../core/exceptions/domain-exceptions";
 import { DomainExceptionCode } from "../../../../../core/exceptions/domain-exception-codes";
@@ -8,6 +8,7 @@ import { PasswordRecoveryInputDto } from "../../../../user-accounts/api/input-dt
 import { UuidService } from "../../services/uuid.service";
 import { UserRegisteredEvent } from "../../../../user-accounts/domain/events/user-registered.event";
 import { EmailExamples } from "../../../../notifications/email-examples";
+import { EmailConfirmationRepository } from "src/modules/user-accounts/infrastructure/email-confirmation.repository";
 
 export class PasswordRecoveryCommand {
   constructor(public dto: PasswordRecoveryInputDto) {}
@@ -26,6 +27,7 @@ export class PasswordRecoveryUseCase
     private uuidService: UuidService,
     private eventBus: EventBus,
     private emailExamples: EmailExamples,
+    private emailConfirmationRepository: EmailConfirmationRepository,
   ) {}
 
   async execute({ dto }: PasswordRecoveryCommand): Promise<void> {
@@ -40,9 +42,7 @@ export class PasswordRecoveryUseCase
       }
 
       const code = this.uuidService.generate();
-
-      user.setConfirmationCode( code );
-      await this.usersRepository.save( user );
+      await this.emailConfirmationRepository.updateEmailConfirmationCode( code, user.id );
 
       this.eventBus.publish(new UserRegisteredEvent(user.email, code, this.emailExamples.passwordRecoveryEmail));
     } catch {

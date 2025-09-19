@@ -4,6 +4,7 @@ import { DomainException } from "../../../../../core/exceptions/domain-exception
 import { DomainExceptionCode } from "../../../../../core/exceptions/domain-exception-codes";
 import { NewPasswordInputDto } from "../../../../../modules/user-accounts/api/input-dto/new-password.input-dto";
 import { CryptoService } from "../../services/crypto.service";
+import { EmailConfirmationRepository } from "src/modules/user-accounts/infrastructure/email-confirmation.repository";
 
 export class NewPasswordCommand {
   constructor(public dto: NewPasswordInputDto) {}
@@ -16,14 +17,15 @@ export class NewPasswordUseCase
   constructor(
     private usersRepository: UsersRepository,
     private readonly cryptoService: CryptoService,
+    private emailConfirmationRepository: EmailConfirmationRepository,
   ) {}
 
   async execute({ dto }: NewPasswordCommand): Promise<void> {
     const { newPassword, recoveryCode } = dto;
     
-    const user = await this.usersRepository.findUserByConfirmationCode( recoveryCode );
-    if ( !user 
-      || (user.expirationDate && user.expirationDate < new Date())
+    const emailConfirmation = await this.emailConfirmationRepository.findUserByConfirmationCode( recoveryCode );
+    if ( !emailConfirmation 
+      || (emailConfirmation.expirationDate && emailConfirmation.expirationDate < new Date())
     ){
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
@@ -32,8 +34,6 @@ export class NewPasswordUseCase
     }
 
     const passwordHash = await this.cryptoService.createPasswordHash( newPassword );
-
-    user.updatePasswordHash( passwordHash );
-    await this.usersRepository.save( user );
+    await this.usersRepository.updatePasswordHash( passwordHash, emailConfirmation.userId.toString() );
   }
 }

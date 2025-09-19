@@ -44,7 +44,7 @@ import { UsersRepository } from '../user-accounts/infrastructure/users.repositor
 import { CqrsModule } from '@nestjs/cqrs';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { PostsFactory } from './posts/application/factories/posts.factory';
-import { User, UserSchema } from '../user-accounts/domain/user.entity';
+import { User, UserSchema } from '../user-accounts/domain/mongoose/user.entity';
 import { PostsLikesQueryRepository } from './posts/infrastructure/query/post-likes.query.repository';
 import { CommentsLikesQueryRepository } from './comments/infrastructure/query/comment-likes.query.repository';
 
