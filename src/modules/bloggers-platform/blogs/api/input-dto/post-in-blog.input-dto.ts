@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsStringWithTrim } from "../../../../../core/decorators/validation/is-string-with-trim";
-import { shortDescriptionConstraints, titleConstraints, contentConstraints } from "../../../../bloggers-platform/posts/domain/post.entity";
+import { contentConstraints, shortDescriptionConstraints, titleConstraints } from "src/modules/bloggers-platform/posts/domain/post.entity";
 
 //Сюда могут быть добавлены декораторы swagger
 export class CreatePostInBlogInputDto {

@@ -29,7 +29,7 @@ export class UpdatePostLikeStatusUseCase
   }
 
   async execute({ postId, dto, userId }: UpdatePostLikeStatusCommand): Promise<void> {
-    const user = await this.usersRepository.findById( userId );
+    const user = await this.usersRepository.findById( Number(userId) );
       if ( !user ) {
         throw new DomainException({
         code: DomainExceptionCode.NotFound,
@@ -37,7 +37,7 @@ export class UpdatePostLikeStatusUseCase
       });
       }
 
-    const post = await this.postRepository.findById( postId );
+    const post = await this.postRepository.findById( Number(postId) );
       if ( !post ) {
        throw new DomainException({
         code: DomainExceptionCode.NotFound,
@@ -48,8 +48,9 @@ export class UpdatePostLikeStatusUseCase
     const userPostStatus = await this.postLikesRepository.findUserPostStatus( postId, userId );
     if ( userPostStatus && userPostStatus.status === dto.likeStatus) return;
 
-    post.updateLikesInfo( dto.likeStatus, userPostStatus?.status);
-    await this.postRepository.save( post );
+    //TODO
+    //post.updateLikesInfo( dto.likeStatus, userPostStatus?.status);
+    //await this.postRepository.save( post );
 
     if ( userPostStatus) {        
       userPostStatus.updateLikeStatus( dto.likeStatus );
@@ -75,8 +76,9 @@ export class UpdatePostLikeStatusUseCase
       }
     });
 
-    post.updateNewestLikes( newestLikes );  
-    await this.postRepository.save( post );
+    //TODO
+    //post.updateNewestLikes( newestLikes );  
+    //await this.postRepository.save( post );
 
     return;
   }

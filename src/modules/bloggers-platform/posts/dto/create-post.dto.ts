@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { contentConstraints, shortDescriptionConstraints, titleConstraints } from "../domain/post.entity";
 import { IsStringWithTrim } from "../../../../core/decorators/validation/is-string-with-trim";
 import { IsString } from "class-validator";
+import { contentConstraints, shortDescriptionConstraints, titleConstraints } from "../domain/post.entity";
 
 export class CreatePostDto {
   @ApiProperty({

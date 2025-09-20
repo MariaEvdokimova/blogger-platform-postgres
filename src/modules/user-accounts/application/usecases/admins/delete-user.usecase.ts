@@ -14,7 +14,7 @@ export class DeleteUserUseCase
   }
 
   async execute({ userId }: DeleteUserCommand): Promise<void> {
-    const user = await this.usersRepository.findOrNotFoundFail(userId);
+    const user = await this.usersRepository.findOrNotFoundFail( Number(userId));
 
     user.makeDeleted();
 

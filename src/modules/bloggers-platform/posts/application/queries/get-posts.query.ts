@@ -23,30 +23,31 @@ export class GetPostsQueryHandler
   ) {}
 
   async execute({ dto, userId }: GetPostsQuery) {
-    //console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!userId ', userId );
     const posts = await this.postsQueryRepository.getAll( dto );
     
-    const postIds = posts.items.map(post => post.id);
-    const likes = userId 
-      ?await this.postsLikesQueryRepository.findByPostIds(postIds, userId)
-      : [];
+    // const postIds = posts.items.map(post => post.id);
+    // const likes = userId 
+    //   ?await this.postsLikesQueryRepository.findByPostIds(postIds, userId)
+    //   : [];
 
-    //словарь для поиска статуса лайка
-    const likesMap = new Map<string, LikeStatus>(
-      likes.map(like => [like.postId.toString(), like.status || LikeStatus.None])
-    );
+    // //словарь для поиска статуса лайка
+    // const likesMap = new Map<string, LikeStatus>(
+    //   likes.map(like => [like.postId.toString(), like.status || LikeStatus.None])
+    // );
 
-    const modifiedItems = posts.items.map(post => ({
-      ...post,
-      extendedLikesInfo: {
-        ...post.extendedLikesInfo,
-        myStatus: likesMap.get(post.id) || LikeStatus.None
-      }
-    })); 
+    // const modifiedItems = posts.items.map(post => ({
+    //   ...post,
+    //   extendedLikesInfo: {
+    //     ...post.extendedLikesInfo,
+    //     myStatus: likesMap.get(post.id) || LikeStatus.None
+    //   }
+    // })); 
 
-    return {
-      ...posts, 
-      items: modifiedItems,
-    };
+    // return {
+    //   ...posts, 
+    //   items: modifiedItems,
+    // };
+
+    return posts;
   }
 }

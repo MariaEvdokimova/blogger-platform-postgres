@@ -26,7 +26,7 @@ export class GetCommentsPostByIdQueryHandler
   ) {}
 
   async execute({ postId, query, userId }: GetCommentsPostByIdQuery) {
-    await this.postsQueryRepository.getByIdOrNotFoundFail( postId );
+    await this.postsQueryRepository.getByIdOrNotFoundFail( Number(postId) );
     const comments = await this.queryBus.execute( new GetCommentsByPostIdQuery( postId, query ));
 
     const commentIds = comments.items.map(post => post.id);

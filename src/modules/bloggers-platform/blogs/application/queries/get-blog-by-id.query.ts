@@ -12,6 +12,6 @@ export class GetBlogByIdQueryHandler
   constructor(private blogsQueryRepository: BlogsQueryRepository) {}
 
   async execute( {id}: GetBlogByIdQuery) {
-    return this.blogsQueryRepository.getByIdMapToViewOrNotFoundFail( id );
+    return this.blogsQueryRepository.getToViewByIdOrNotFoundFail( Number(id) );
   }
 }

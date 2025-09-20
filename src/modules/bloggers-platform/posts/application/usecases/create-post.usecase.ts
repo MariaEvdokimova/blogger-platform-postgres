@@ -1,19 +1,19 @@
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { PostsRepository } from "../../infrastructure/posts.repository";
 import { CreatePostInputDto } from "../../api/input-dto/posts.input-dto";
-import { BlogDocument } from "../../../../bloggers-platform/blogs/domain/blog.entity";
+import { Blog } from "src/modules/bloggers-platform/blogs/domain/blog.entity";
 import { PostsFactory } from "../factories/posts.factory";
 
 export class CreatePostCommand {
   constructor(
     public dto: CreatePostInputDto,
-    public blog: BlogDocument
+    public blog: Blog
   ) {}
 }
 
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase
-  implements ICommandHandler<CreatePostCommand, string>
+  implements ICommandHandler<CreatePostCommand, number>
 {
   constructor(
     private postsRepository: PostsRepository,
@@ -22,11 +22,10 @@ export class CreatePostUseCase
     //console.log('CreatePostUseCase');
   }
 
-  async execute({ dto, blog }: CreatePostCommand): Promise<string> {
+  async execute({ dto, blog }: CreatePostCommand): Promise<number> {
     const post = await this.postsFactory.create( dto, blog );
+    const postId = await this.postsRepository.save( post );
 
-    await this.postsRepository.save( post );
-
-    return post._id.toString();
+    return postId;
   }
 }

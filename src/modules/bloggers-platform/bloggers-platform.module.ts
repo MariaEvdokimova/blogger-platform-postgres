@@ -6,9 +6,7 @@ import { CommentsQueryRepository } from './comments/infrastructure/query/comment
 import { PostsController } from './posts/api/posts.controller';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
-import { PostsService } from './posts/application/posts.service';
-import { Post, PostSchema } from './posts/domain/post.entity';
-import { Blog, BlogSchema } from './blogs/domain/blog.entity';
+import { Blog, BlogSchema } from './blogs/domain/mongoose/blog.entity';
 import { BlogsController } from './blogs/api/blogs.controller';
 import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-repository';
 import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
@@ -36,17 +34,21 @@ import { UpdatePostLikeStatusUseCase } from './posts/application/usecases/update
 import { LikePost, LikePostSchema } from './posts/domain/likes.entity';
 import { PostLikesRepository } from './posts/infrastructure/posts-likes.repository';
 import { CommentLikesRepository } from './comments/infrastructure/comment-likes.repository';
-import { BlogsFactory } from './blogs/application/factories/blogs.factory';
+import { BlogsFactory as BlogsFactoryM } from './blogs/application/factories/mongoose/blogs.factory';
 import { CommentFactory } from './comments/application/factories/comment.factory';
 import { PostLikeStatusFactory } from './posts/application/factories/post-like-status.factory';
 import { CommentLikeStatusFactory } from './comments/application/factories/comment-like-status.factory';
 import { UsersRepository } from '../user-accounts/infrastructure/users.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
-import { PostsFactory } from './posts/application/factories/posts.factory';
+import { PostsFactory as PostsFactoryM } from './posts/application/factories/mongoose/posts.factory';
 import { User, UserSchema } from '../user-accounts/domain/mongoose/user.entity';
 import { PostsLikesQueryRepository } from './posts/infrastructure/query/post-likes.query.repository';
 import { CommentsLikesQueryRepository } from './comments/infrastructure/query/comment-likes.query.repository';
+import { BlogsSuperAdminController } from './blogs/api/blogs-super-admin.controller';
+import { Post, PostSchema } from './posts/domain/mongoose/post.entity';
+import { BlogsFactory } from './blogs/application/factories/blogs.factory';
+import { PostsFactory } from './posts/application/factories/posts.factory';
 
 const commandHandlers = [
   CreateBlogUseCase,
@@ -90,6 +92,7 @@ const queryHandlers = [
     CommentsController, 
     PostsController,
     BlogsController,
+    BlogsSuperAdminController,
   ],
   providers: [
     ...commandHandlers,
@@ -98,16 +101,16 @@ const queryHandlers = [
     CommentsRepository,
     CommentLikesRepository,
     CommentsLikesQueryRepository,
-    PostsService,
     PostsQueryRepository,
     PostsRepository,
     PostLikesRepository,
     PostsLikesQueryRepository,
-    //BlogsService,
     BlogsQueryRepository,
     BlogsRepository,
+    BlogsFactoryM, //!!!!!!!!!!!!!!!!
     BlogsFactory,
     CommentFactory,
+    PostsFactoryM, //!!!!!!!!!!!!!!!!!!!!!!
     PostsFactory,
     PostLikeStatusFactory,
     CommentLikeStatusFactory,

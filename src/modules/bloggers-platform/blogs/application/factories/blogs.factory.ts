@@ -1,19 +1,16 @@
 import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Blog, BlogDocument, BlogModelType } from "../../domain/blog.entity";
 import { CreateBlogInputDto } from "../../api/input-dto/blogs.input-dto";
+import { Blog } from "../../domain/blog.entity";
 
 @Injectable()
 export class BlogsFactory {
-  constructor(
-    @InjectModel(Blog.name)
-    private BlogModel: BlogModelType,
+  constructor(    
   ) {}
-  async create(dto: CreateBlogInputDto): Promise<BlogDocument> {
-     return this.BlogModel.createInstance({
+  async create(dto: CreateBlogInputDto): Promise<Blog> {
+    return Blog.createInstance({
       name: dto.name,
       description: dto.description,
-      websiteUrl: dto.websiteUrl,
+      websiteUrl: dto.websiteUrl
     });
   }
 }

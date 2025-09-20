@@ -1,70 +1,115 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Blog, BlogDocument, BlogModelType } from "../../domain/blog.entity";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Pool } from 'pg';
 import { BlogViewDto } from "../../api/view-dto/blogs.view-dto";
 import { GetBlogsQueryParams } from "../../api/input-dto/get-blogs-query-params.input-dto";
-import { FilterQuery } from "mongoose";
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
+import { Blog } from "../../domain/blog.entity";
 
 @Injectable()
 export class BlogsQueryRepository {
   constructor(
-    @InjectModel(Blog.name)
-    private BlogModel: BlogModelType,
+    @Inject('PG_POOL') private readonly db: Pool,
   ) {}
 
-  async getByIdOrNotFoundFail(id: string): Promise<BlogDocument> {
-    const blog = await this.BlogModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async getByIdOrNotFoundFail(id: number): Promise<Blog> {
+    const result = await this.db.query(
+          `
+          SELECT 
+            id, 
+            "name", 
+            description, 
+            "websiteUrl", 
+            "isMembership", 
+            "createdAt"
+          FROM 
+            public.blogs
+          WHERE id = $1 AND "deletedAt" IS NULL;`,
+          [ id ]
+        );
 
-    if (!blog) {
-      throw new NotFoundException('blog not found');
-    }
-
-    return blog;
+        if (!result || result.rows.length === 0) {
+          throw new NotFoundException('blog not found');
+        }
+    
+    return result.rows[0];
   }
 
-  async getByIdMapToViewOrNotFoundFail(id: string): Promise<BlogViewDto> {
-    const blog = await this.BlogModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
-
-    if (!blog) {
-      throw new NotFoundException('blog not found');
-    }
-
-    return BlogViewDto.mapToView(blog);
+  async getToViewByIdOrNotFoundFail(id: number): Promise<BlogViewDto> {
+    const result = await this.db.query(
+          `
+          SELECT 
+            id, 
+            "name", 
+            description, 
+            "websiteUrl", 
+            "isMembership", 
+            "createdAt"
+          FROM 
+            public.blogs
+          WHERE id = $1 AND "deletedAt" IS NULL;`,
+          [ id ]
+        );
+    
+        if (!result || result.rows.length === 0) {
+          throw new NotFoundException('blog not found');
+        }
+    
+    return BlogViewDto.mapToView(result.rows[0]);
   }
 
   async getAll(
     query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    const filter: FilterQuery<Blog> = {
-      deletedAt: null,
-    };
+    const whereClauses: string[] = ['"deletedAt" IS NULL'];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    const sortBy = query.sortBy ?? 'createdAt';
+    const sortDirection = query.sortDirection?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     if (query.searchNameTerm) {
-      filter.$or = filter.$or || [];
-      filter.$or.push({
-        name: { $regex: query.searchNameTerm, $options: 'i' },
-      });
+      whereClauses.push(`name ILIKE $${paramIndex++}`);
+      params.push(`%${query.searchNameTerm}%`);
     }
 
-    const blogs = await this.BlogModel.find(filter)
-      .sort({ [query.sortBy]: query.sortDirection })
-      .skip(query.calculateSkip())
-      .limit(query.pageSize);
+    params.push(query.pageSize);
+    params.push(query.calculateSkip());
 
-    const totalCount = await this.BlogModel.countDocuments(filter);
+    const whereSql = whereClauses.join(' AND ');
 
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        id, 
+        "name", 
+        description, 
+        "websiteUrl", 
+        "isMembership", 
+        "createdAt"
+      FROM 
+        public.blogs
+      WHERE 
+        ${whereSql}
+      ORDER BY "${sortBy}" ${sortDirection}
+      LIMIT $${paramIndex++} OFFSET $${paramIndex};`,
+      params
+    );
+  
+    const totalCount = await this.db.query(
+      ` 
+      SELECT count(*)
+      FROM public.blogs
+      WHERE 
+        ${whereSql};`,
+      params.slice(0, paramIndex - 2) // Убираем LIMIT и OFFSET параметры
+    );
+
+    const blogs = result.rows || [];
     const items = blogs.map(BlogViewDto.mapToView);
 
     return PaginatedViewDto.mapToView({
       items,
-      totalCount,
+      totalCount: parseInt(totalCount.rows[0].count, 10) || 0,
       page: query.pageNumber,
       size: query.pageSize,
     });
