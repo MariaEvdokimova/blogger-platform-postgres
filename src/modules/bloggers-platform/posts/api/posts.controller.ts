@@ -58,7 +58,7 @@ export class PostsController {
   ): Promise<PostViewDto> {
     return this.queryBus.execute( new GetPostByIdQuery( id, userId ));
   }
-  
+  /*
   @UseGuards(OptionalJwtGuard)
   @ApiParam({ name: 'postId' }) //для сваггера
   @Get(':postId/comments')
@@ -134,4 +134,5 @@ export class PostsController {
   async deletePost(@Param('id') id: string): Promise<void> {
     return this.commandBus.execute( new DeletePostCommand( id ));
   }
+*/
 }

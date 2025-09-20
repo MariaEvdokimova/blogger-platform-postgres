@@ -21,13 +21,13 @@ export class UpdatePostUseCase
   }
 
   async execute({ id, dto }: UpdatePostCommand): Promise<void> {
-    const post = await this.postsRepository.findOrNotFoundFail(id);
+    const post = await this.postsRepository.findOrNotFoundFail( Number(id) );
   
     post.update({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
-      blogId: new Types.ObjectId(dto.blogId) 
+      blogId: dto.blogId 
     });
     
     await this.postsRepository.save(post);

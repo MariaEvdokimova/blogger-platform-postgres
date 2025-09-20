@@ -34,7 +34,7 @@ import { DatabaseModule } from './database/database.module';
       throttlers: [
         {
           ttl: 10000, // Время жизни в секундах 
-          limit: 5, // Максимум 5 запросов
+          limit: 100000000000000000 //5, // Максимум 5 запросов
         },
       ],
     }),

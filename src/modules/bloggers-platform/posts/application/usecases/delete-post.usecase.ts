@@ -16,7 +16,7 @@ export class DeletePostUseCase
   }
 
   async execute({ id }: DeletePostCommand): Promise<void> {
-    const post = await this.postsRepository.findOrNotFoundFail(id);
+    const post = await this.postsRepository.findOrNotFoundFail( Number(id) );
 
     post.makeDeleted();
 

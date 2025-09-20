@@ -26,10 +26,10 @@ export class GetPostsInBlogQueryHandler
   ) {}
 
   async execute( { blogId, query, userId }: GetPostsInBlogQuery) {
-    const blog = await this.blogsQueryRepository.getByIdOrNotFoundFail( blogId );
-    const posts = await this.postsQueryRepository.getPostsInBlog( query, blogId );
+    await this.blogsQueryRepository.getByIdOrNotFoundFail( Number(blogId) );
+    const posts = await this.postsQueryRepository.getPostsInBlog( query, Number(blogId) );
 
-    const postIds = posts.items.map(post => post.id);
+   /* const postIds = posts.items.map(post => post.id);
     const likes = userId 
       ?await this.postsLikesQueryRepository.findByPostIds(postIds, userId)
       : [];
@@ -51,5 +51,7 @@ export class GetPostsInBlogQueryHandler
       ...posts, 
       items: modifiedItems,
     };
+    */
+   return posts
   }
 }

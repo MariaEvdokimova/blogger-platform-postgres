@@ -21,7 +21,7 @@ export class UsersQueryRepository {
       [ id ]
     );
 
-    if (!result || result.rows[0].length === 0) {
+    if (!result || result.rows.length === 0) {
       throw new NotFoundException('user not found');
     }
 

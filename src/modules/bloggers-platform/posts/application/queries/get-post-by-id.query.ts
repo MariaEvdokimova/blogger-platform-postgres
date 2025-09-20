@@ -21,19 +21,19 @@ export class GetPostByIdQueryHandler
   ) {}
 
   async execute({ id, userId }: GetPostByIdQuery) {
-    const post = await this.postsQueryRepository.getByIdOrNotFoundFail( id );
-    const likeStatus = userId
-      ? await this.postsLikesQueryRepository.findStatusByUserIdAndPostId( userId, id)
-      : LikeStatus.None;
+    const post = await this.postsQueryRepository.getByIdOrNotFoundFail( Number(id) );
+    // const likeStatus = userId
+    //   ? await this.postsLikesQueryRepository.findStatusByUserIdAndPostId( userId, id)
+    //   : LikeStatus.None;
 
-    const postWithMyStatus = {
-      ...post,
-      extendedLikesInfo: {
-        ...post.extendedLikesInfo,
-        myStatus: likeStatus || LikeStatus.None
-      }
-    };
+    // const postWithMyStatus = {
+    //   ...post,
+    //   extendedLikesInfo: {
+    //     ...post.extendedLikesInfo,
+    //     myStatus: likeStatus || LikeStatus.None
+    //   }
+    // };
 
-    return postWithMyStatus;
+    return post;//postWithMyStatus;
   }
 }

@@ -52,7 +52,7 @@ export class UsersRepository {
     );
   }
 
-  async findById(id: string) {
+  async findById(id: number) {
     const result = await this.db.query(
       ` 
       SELECT 
@@ -66,15 +66,22 @@ export class UsersRepository {
     return result.rows[0] ?? null
   }
 
-  async findOrNotFoundFail(id: string): Promise<User> {
-    const user = await this.findById(id);
+  async findOrNotFoundFail(id: number): Promise<User> {
+    const result = await this.db.query(
+      ` 
+      SELECT 
+        *
+      FROM 
+        public.users
+      WHERE id = $1 AND "deletedAt" IS NULL;`,
+      [ id ]
+    );
 
-    if (!user) {
-      //TODO: replace with domain exception
-      throw new NotFoundException('user not found');
+    if (!result || result.rows.length === 0) {
+      throw new NotFoundException('post not found');
     }
 
-    return UserMapper.fromDb(user);
+    return result.rows[0];
   }
 
   async doesExistByLoginOrEmail(

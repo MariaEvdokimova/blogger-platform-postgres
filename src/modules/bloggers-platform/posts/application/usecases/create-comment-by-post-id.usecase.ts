@@ -28,7 +28,7 @@ export class CreateCommentByPostIdUseCase
   }
 
   async execute({ dto, post, userId }: CreateCommentByPostIdCommand): Promise<string> {
-    const user = await this.usersRepository.findById( userId );
+    const user = await this.usersRepository.findById( Number(userId) );
     if ( !user ) {
       throw new DomainException({
       code: DomainExceptionCode.NotFound,

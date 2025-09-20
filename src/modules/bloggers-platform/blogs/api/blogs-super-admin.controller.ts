@@ -12,22 +12,25 @@ import { GetPostsQueryParams } from "../../posts/api/input-dto/get-posts-query-p
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { GetBlogsQuery } from "../application/queries/get-blogs.query";
-import { GetBlogByIdQuery } from "../application/queries/get-blog-by-id.query";
 import { GetPostsInBlogQuery } from "../application/queries/get-posts-in-blog.query";
 import { DeleteBlogCommand } from "../application/usecases/delete-blog.usecase";
 import { CreateBlogCommand } from "../application/usecases/create-blog.usecase";
 import { BasicAuthGuard } from "../../../../modules/user-accounts/guards/basic/basic-auth.guard";
 import { UpdateBlogCommand } from "../application/usecases/update-blog.usecase";
-import { OptionalJwtGuard } from "src/modules/user-accounts/guards/bearer/jwt-optional.quard";
-import { UserId } from "src/modules/user-accounts/guards/decorators/param/user-id.decorator";
 import { SkipThrottle } from "@nestjs/throttler";
+import { CreatePostCommand } from "../../posts/application/usecases/create-post.usecase";
+import { UpdatePostInBlogDomainDto } from "../dto/update-post-in-blog.dto";
+import { UpdatePostCommand } from "../../posts/application/usecases/update-post.usecase";
+import { DeletePostCommand } from "../../posts/application/usecases/delete-post.usecase";
 
 @SkipThrottle()
-@Controller('blogs')
-export class BlogsController {
+@ApiBasicAuth('basicAuth')
+@UseGuards(BasicAuthGuard)
+@Controller('sa/blogs')
+export class BlogsSuperAdminController {
   constructor(
     private blogsQueryRepository: BlogsQueryRepository,
-    private postsQueryRepository: PostsQueryRepository,
+    private postsQueryRepository: PostsQueryRepository,  
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
@@ -36,60 +39,66 @@ export class BlogsController {
   async getAll(@Query() query: GetBlogsQueryParams): Promise<PaginatedViewDto<BlogViewDto[]>> {
     return this.queryBus.execute(new GetBlogsQuery( query ));
   }
- 
-  @ApiParam({ name: 'id' }) //для сваггера
-  @Get(':id')
-  async getBlog(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.queryBus.execute( new GetBlogByIdQuery( id ));
-  }
   
-  @UseGuards(OptionalJwtGuard)
   @ApiParam({ name: 'blogId' }) //для сваггера
   @Get(':blogId/posts')
   async getBlogPosts(
     @Param('blogId') blogId: string, 
     @Query() query: GetPostsQueryParams,
-    @UserId() userId: string
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.queryBus.execute( new GetPostsInBlogQuery( blogId, query, userId ));
+    return this.queryBus.execute( new GetPostsInBlogQuery( blogId, query, 'admin' ));
   }
-/*
-  @UseGuards(BasicAuthGuard)
-  @ApiBasicAuth('basicAuth')
+
   @Post()
   async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
     const blogId = await this.commandBus.execute( new CreateBlogCommand( body ));
     return this.blogsQueryRepository.getToViewByIdOrNotFoundFail(blogId);
   }
 
-  @UseGuards(BasicAuthGuard)
-  @ApiBasicAuth('basicAuth')
   @ApiParam({ name: 'blogId' }) //для сваггера
   @Post(':blogId/posts')
   async createPostInBlog(@Param('blogId') blogId: string, @Body() body: CreatePostInBlogInputDto): Promise<PostViewDto> {
-    const blog = await this.blogsQueryRepository.getByIdOrNotFoundFail( blogId );
-    ЗАМЕНИТЬ НА ШИНУ!!!
-    const postId = await this.postsService.createPost({ ...body, blogId: blog._id.toString()}, blog);
- 
+    const blog = await this.blogsQueryRepository.getByIdOrNotFoundFail( Number(blogId) );
+    const postId = await this.commandBus.execute( new CreatePostCommand( { ...body, blogId: blog.id!.toString()}, blog ));
     return this.postsQueryRepository.getByIdOrNotFoundFail(postId);
   }
   
-  @UseGuards(BasicAuthGuard)
-  @ApiBasicAuth('basicAuth')
   @ApiParam({ name: 'id' }) //для сваггера
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(@Param('id') id: string, @Body() body: UpdateBlogDto): Promise<void> {
     return this.commandBus.execute( new UpdateBlogCommand( id, body ));
   }
- 
-  @UseGuards(BasicAuthGuard)
-  @ApiBasicAuth('basicAuth')
+
+  @ApiParam({name: 'blogId', type: String})
+  @ApiParam({name: 'postId', type: String})
+  @Put(':blogId/posts/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updatePostInBlog(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+    @Body() body: UpdatePostInBlogDomainDto
+  ): Promise<void> {
+    await this.blogsQueryRepository.getByIdOrNotFoundFail( Number(blogId) );
+    return this.commandBus.execute( new UpdatePostCommand( postId, {...body, blogId: Number(blogId) }));
+  }
+
   @ApiParam({ name: 'id' }) //для сваггера
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id') id: string): Promise<void> {
     return this.commandBus.execute( new DeleteBlogCommand( id ));
   }
-*/
+
+  @ApiParam({name: 'blogId', type: String})
+  @ApiParam({name: 'postId', type: String})
+  @Delete(':blogId/posts/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePostInBlog(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string
+  ): Promise<void> {
+    await this.blogsQueryRepository.getByIdOrNotFoundFail( Number(blogId) );
+    return this.commandBus.execute( new DeletePostCommand( postId ));
+  }
 }

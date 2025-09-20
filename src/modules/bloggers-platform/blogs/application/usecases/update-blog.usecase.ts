@@ -18,7 +18,7 @@ export class UpdateBlogUseCase
   ) {}
 
   async execute({ id, dto }: UpdateBlogCommand) {
-   const blog = await this.blogsRepository.findOrNotFoundFail(id);
+   const blog = await this.blogsRepository.findOrNotFoundFail( Number(id) );
   
     blog.update({
       name: dto.name,

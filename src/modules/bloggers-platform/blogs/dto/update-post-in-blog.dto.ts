@@ -1,9 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsStringWithTrim } from "../../../../core/decorators/validation/is-string-with-trim";
-import { IsNumber } from "class-validator";
-import { contentConstraints, shortDescriptionConstraints, titleConstraints } from "../domain/post.entity";
+import { contentConstraints, shortDescriptionConstraints, titleConstraints } from "../../posts/domain/post.entity";
 
-export class UpdatePostDomainDto {
+export class UpdatePostInBlogDomainDto {
   @ApiProperty({
     minLength: titleConstraints.minLength,
     maxLength: titleConstraints.maxLength,
@@ -27,7 +26,4 @@ export class UpdatePostDomainDto {
   })
   @IsStringWithTrim(contentConstraints.minLength, contentConstraints.maxLength)
   content:	string;
-
-  @IsNumber()
-  blogId: number;
 }
