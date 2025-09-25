@@ -40,7 +40,7 @@ export class UsersRepository {
     return result.rows[0].id.toString();
   }
 
-  async softDelete(id: string): Promise<void> {
+  async softDelete(id: number): Promise<void> {
     await this.db.query(
       `
       UPDATE public.users
@@ -52,18 +52,32 @@ export class UsersRepository {
     );
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<User | null> {
     const result = await this.db.query(
       ` 
       SELECT 
-        *
+        id, login, "passwordHash", email, "deletedAt", "createdAt", "updatedAt"
       FROM 
         public.users
       WHERE id = $1 AND "deletedAt" IS NULL;`,
       [ id ]
     );
 
-    return result.rows[0] ?? null
+    const row = result.rows[0];
+    if (!row) return null;
+
+    const user = new User(
+      row.login,
+      row.email,
+      row.passwordHash
+    );
+
+    user.id = row.id;
+    user.createdAt = row.createdAt;
+    user.updatedAt = row.updatedAt;
+    user.deletedAt = row.deletedAt;
+
+    return user;
   }
 
   async findOrNotFoundFail(id: number): Promise<User> {

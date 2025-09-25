@@ -18,6 +18,6 @@ export class DeleteUserUseCase
 
     user.makeDeleted();
 
-    await this.usersRepository.softDelete(user.id);
+    await this.usersRepository.softDelete(Number(user.id));
   }
 }

@@ -6,7 +6,7 @@ import { UserContextDto } from "../../dto/user-context.dto";
 
 export class DeleteCommentCommand {
   constructor(
-    public commentId: string,
+    public commentId: number,
     public user: UserContextDto
   ) {}
 }
@@ -20,9 +20,9 @@ export class DeleteCommentUseCase
   }
 
   async execute({ commentId, user }: DeleteCommentCommand): Promise<void> {
-    const comment = await this.commentsRepository.findOrNotFoundFail( commentId );
+    await this.commentsRepository.findOrNotFoundFail( commentId );
 
-    const commentVerifyed = await this.commentsRepository.verifyUserOwnership( commentId, user.id);
+    const commentVerifyed = await this.commentsRepository.verifyUserOwnership( commentId, Number(user.id));
     if ( !commentVerifyed ) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,

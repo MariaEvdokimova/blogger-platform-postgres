@@ -4,7 +4,7 @@ import { BlogsRepository } from "../../infrastructure/blogs.repository";
 
 export class UpdateBlogCommand {
   constructor(
-    public id: string, 
+    public id: number, 
     public dto: UpdateBlogDto
   ) {}
 }
@@ -18,7 +18,7 @@ export class UpdateBlogUseCase
   ) {}
 
   async execute({ id, dto }: UpdateBlogCommand) {
-   const blog = await this.blogsRepository.findOrNotFoundFail( Number(id) );
+   const blog = await this.blogsRepository.findOrNotFoundFail( id );
   
     blog.update({
       name: dto.name,

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Comment, CommentSchema } from './comments/domain/comment.entity';
 import { CommentsController } from './comments/api/comments.controller';
 import { CommentsQueryRepository } from './comments/infrastructure/query/comments.query-repository';
 import { PostsController } from './posts/api/posts.controller';
@@ -19,7 +18,6 @@ import { UpdateBlogUseCase } from './blogs/application/usecases/update-blog.usec
 import { GetCommentByIdQueryHandler } from './comments/application/queries/get-comment-by-id.query';
 import { CommentsRepository } from './comments/infrastructure/comments.repository';
 import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
-import { LikeComment, LikeCommentSchema } from './comments/domain/likes.entity';
 import { UpdateCommentUseCase } from './comments/application/usecases/update-comment.usecase';
 import { UpdateCommentLikeStatusUseCase } from './comments/application/usecases/update-comment-like-status.usecase';
 import { GetCommentsByPostIdQueryHandler } from './comments/application/queries/get-comments-by-post-id.query';
@@ -31,7 +29,6 @@ import { CreatePostUseCase } from './posts/application/usecases/create-post.usec
 import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 import { CreateCommentByPostIdUseCase } from './posts/application/usecases/create-comment-by-post-id.usecase';
 import { UpdatePostLikeStatusUseCase } from './posts/application/usecases/update-post-like-status.usecase';
-import { LikePost, LikePostSchema } from './posts/domain/likes.entity';
 import { PostLikesRepository } from './posts/infrastructure/posts-likes.repository';
 import { CommentLikesRepository } from './comments/infrastructure/comment-likes.repository';
 import { BlogsFactory as BlogsFactoryM } from './blogs/application/factories/mongoose/blogs.factory';
@@ -44,7 +41,6 @@ import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { PostsFactory as PostsFactoryM } from './posts/application/factories/mongoose/posts.factory';
 import { User, UserSchema } from '../user-accounts/domain/mongoose/user.entity';
 import { PostsLikesQueryRepository } from './posts/infrastructure/query/post-likes.query.repository';
-import { CommentsLikesQueryRepository } from './comments/infrastructure/query/comment-likes.query.repository';
 import { BlogsSuperAdminController } from './blogs/api/blogs-super-admin.controller';
 import { Post, PostSchema } from './posts/domain/mongoose/post.entity';
 import { BlogsFactory } from './blogs/application/factories/blogs.factory';
@@ -80,11 +76,8 @@ const queryHandlers = [
     CqrsModule,
     UserAccountsModule,
     MongooseModule.forFeature([
-      { name: Comment.name, schema: CommentSchema },
       { name: Post.name, schema: PostSchema },
       { name: Blog.name, schema: BlogSchema },
-      { name: LikeComment.name, schema: LikeCommentSchema },
-      {name: LikePost.name, schema: LikePostSchema },
       { name: User.name, schema: UserSchema },
    ]),
   ],
@@ -100,7 +93,6 @@ const queryHandlers = [
     CommentsQueryRepository,
     CommentsRepository,
     CommentLikesRepository,
-    CommentsLikesQueryRepository,
     PostsQueryRepository,
     PostsRepository,
     PostLikesRepository,

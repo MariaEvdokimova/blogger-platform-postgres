@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Model, Types } from "mongoose";
-import { ExtendedLikesInfo, ExtendedLikesInfoSchema, LikeStatus } from "../extendedLikesInfo.entity";
 import { CreatePostDomainDto } from "../dto/create-post.domain.dto";
 import { UpdatePostDomainDto } from "../../dto/update-post.dto";
-import { NewestLikes } from "../newestLikes.entity";
+import { ExtendedLikesInfo, NewestLikes } from "../dto/extended-likes-info.dto";
+import { LikeStatus } from "../likes.entity";
 
 export const titleConstraints = {
   minLength: 1,
@@ -68,7 +68,7 @@ export class Post {
   blogName: string;
 
   // @Prop(extendedLikesInfoSchema) this variant from docdoesn't make validation for inner object
-  @Prop({ type: ExtendedLikesInfoSchema })
+  //@Prop({ type: ExtendedLikesInfoSchema })
   extendedLikesInfo: ExtendedLikesInfo;
   
   /**

@@ -46,7 +46,7 @@ export class BlogsSuperAdminController {
     @Param('blogId') blogId: string, 
     @Query() query: GetPostsQueryParams,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.queryBus.execute( new GetPostsInBlogQuery( blogId, query, 'admin' ));
+    return this.queryBus.execute( new GetPostsInBlogQuery( Number(blogId), query ));
   }
 
   @Post()
@@ -67,7 +67,7 @@ export class BlogsSuperAdminController {
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(@Param('id') id: string, @Body() body: UpdateBlogDto): Promise<void> {
-    return this.commandBus.execute( new UpdateBlogCommand( id, body ));
+    return this.commandBus.execute( new UpdateBlogCommand( Number(id), body ));
   }
 
   @ApiParam({name: 'blogId', type: String})
@@ -87,7 +87,7 @@ export class BlogsSuperAdminController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id') id: string): Promise<void> {
-    return this.commandBus.execute( new DeleteBlogCommand( id ));
+    return this.commandBus.execute( new DeleteBlogCommand( Number(id) ));
   }
 
   @ApiParam({name: 'blogId', type: String})
@@ -99,6 +99,6 @@ export class BlogsSuperAdminController {
     @Param('postId') postId: string
   ): Promise<void> {
     await this.blogsQueryRepository.getByIdOrNotFoundFail( Number(blogId) );
-    return this.commandBus.execute( new DeletePostCommand( postId ));
+    return this.commandBus.execute( new DeletePostCommand( Number(postId) ));
   }
 }

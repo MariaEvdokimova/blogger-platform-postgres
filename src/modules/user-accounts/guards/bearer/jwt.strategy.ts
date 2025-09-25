@@ -19,6 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    * @param payload
    */
   async validate(payload: { id: string }): Promise<UserContextDto> {
+    //console.log('!!!!!!!!!!!!!!!!!payload ', payload.id);
     return {
       id: payload.id,
     };

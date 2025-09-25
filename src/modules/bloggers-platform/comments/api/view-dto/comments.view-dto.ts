@@ -1,5 +1,15 @@
-import { CommentDocument } from '../../domain/comment.entity';
-import { LikeStatus } from '../../domain/likesInfo.entity';
+import { LikeStatus } from '../../domain/comment-like.entity';
+
+interface CommentInfoInputDto {
+  id: number;
+  content: string;
+  userId: number;
+  userLogin: string;
+  likesCount?: number | null;
+  dislikesCount?: number | null;
+  myStatus?: LikeStatus | null;
+  createdAt: Date
+};
 
 export class CommentViewDto {
   id: string;
@@ -11,26 +21,24 @@ export class CommentViewDto {
   likesInfo: {
     likesCount: number,
     dislikesCount: number,
-    myStatus: string,
+    myStatus: LikeStatus,
   };
   createdAt: Date
 
-  static mapToView(comment: CommentDocument): CommentViewDto {
+  static mapToView(comment: CommentInfoInputDto): CommentViewDto {
     const dto = new CommentViewDto();
-
-    dto.id = comment._id.toString();
+    dto.id = comment.id.toString();
     dto.content = comment.content;
     dto.commentatorInfo = {
-      userId: comment.commentatorInfo.userId.toString(),
-      userLogin: comment.commentatorInfo.userLogin
+      userId: comment.userId.toString(),
+      userLogin: comment.userLogin
     };
-    //dto.likesInfo.myStatus = comment.likesInfo.myStatus;
     dto.createdAt = comment.createdAt;
 
     dto.likesInfo = {
-      likesCount: comment?.likesInfo?.likesCount || 0,
-      dislikesCount: comment?.likesInfo?.dislikesCount || 0,
-      myStatus: comment?.likesInfo.myStatus || LikeStatus.None, 
+      likesCount: comment.likesCount ?? 0,
+      dislikesCount: comment.dislikesCount ?? 0,
+      myStatus: comment.myStatus ?? LikeStatus.None, 
     };
 
     return dto;

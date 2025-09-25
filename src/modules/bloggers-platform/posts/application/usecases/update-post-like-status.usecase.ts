@@ -9,9 +9,9 @@ import { PostLikeStatusFactory } from "../factories/post-like-status.factory";
 
 export class UpdatePostLikeStatusCommand {
   constructor(
-    public postId: string, 
+    public postId: number, 
     public dto: UpdatePostLikeStatusInputDto,
-    public userId: string
+    public userId: number
   ) {}
 }
 
@@ -29,7 +29,7 @@ export class UpdatePostLikeStatusUseCase
   }
 
   async execute({ postId, dto, userId }: UpdatePostLikeStatusCommand): Promise<void> {
-    const user = await this.usersRepository.findById( Number(userId) );
+    const user = await this.usersRepository.findById( userId );
       if ( !user ) {
         throw new DomainException({
         code: DomainExceptionCode.NotFound,
@@ -37,7 +37,7 @@ export class UpdatePostLikeStatusUseCase
       });
       }
 
-    const post = await this.postRepository.findById( Number(postId) );
+    const post = await this.postRepository.findById( postId );
       if ( !post ) {
        throw new DomainException({
         code: DomainExceptionCode.NotFound,
@@ -45,41 +45,20 @@ export class UpdatePostLikeStatusUseCase
       });
     }
  
-    const userPostStatus = await this.postLikesRepository.findUserPostStatus( postId, userId );
-    if ( userPostStatus && userPostStatus.status === dto.likeStatus) return;
-
-    //TODO
-    //post.updateLikesInfo( dto.likeStatus, userPostStatus?.status);
-    //await this.postRepository.save( post );
-
-    if ( userPostStatus) {        
-      userPostStatus.updateLikeStatus( dto.likeStatus );
-      await this.postLikesRepository.save( userPostStatus );             
+    let postLike = await this.postLikesRepository.findUserPostStatus( postId, userId );
+    if ( postLike && postLike.status === dto.likeStatus) return;
+    
+    if ( !postLike ) {
+      postLike = await this.postLikeStatusFactory.create({ 
+        postId: Number(postId), 
+        userId: Number(user.id), 
+        status: dto.likeStatus
+      });
     } else {
-      const newStatus = await this.postLikeStatusFactory.create({ postId, userId, status: dto.likeStatus});
-      await this.postLikesRepository.save( newStatus );
+      postLike.updateLikeStatus( dto.likeStatus );
     }
 
-    const lastThreeLikes = await this.postLikesRepository.findLastThreeLikes(postId);
-    const userIds = lastThreeLikes.map(lastLike => lastLike.userId);
-    const users = await this.usersRepository.findByUserIds( userIds ) || [];
-
-    const usersMap = new Map< string, string>(
-      users.map(user => [user.id.toString(), user.login || ''])
-    );
-  
-    const newestLikes = lastThreeLikes.map( lastLike => {
-      return { 
-        addedAt: lastLike.createdAt,
-        userId: lastLike.userId.toString(), 
-        login: usersMap.get(lastLike.userId.toString()) || '',
-      }
-    });
-
-    //TODO
-    //post.updateNewestLikes( newestLikes );  
-    //await this.postRepository.save( post );
-
+    await this.postLikesRepository.save( postLike );
     return;
   }
 }

@@ -37,7 +37,7 @@ export class RegistrationEmailResendingUseCase
       });
     }
 
-    const emailConfirmation = await this.emailConfirmationRepository.findbyUserId( user.id );
+    const emailConfirmation = await this.emailConfirmationRepository.findbyUserId( user.id! );
     if ( emailConfirmation && emailConfirmation.isEmailConfirmed === true) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
@@ -50,7 +50,7 @@ export class RegistrationEmailResendingUseCase
     }
 
     const newConfirmationCode = this.uuidService.generate();
-    await this.emailConfirmationRepository.updateEmailConfirmationCode( newConfirmationCode, user.id );
+    await this.emailConfirmationRepository.updateEmailConfirmationCode( newConfirmationCode, user.id! );
 
     this.eventBus.publish(new UserRegisteredEvent(user.email, newConfirmationCode, this.emailExamples.registrationEmail));
   }

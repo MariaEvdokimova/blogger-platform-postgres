@@ -18,7 +18,7 @@ export const emailConstraints = {
 };
 
 export class User {
-  id: string; 
+  id?: number; 
   createdAt: Date = new Date();
   updatedAt: Date = new Date();
   deletedAt: Date | null = null;

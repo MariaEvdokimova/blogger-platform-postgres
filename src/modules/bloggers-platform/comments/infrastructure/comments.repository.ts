@@ -1,55 +1,115 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Comment, CommentDocument, CommentModelType } from "../domain/comment.entity";
-import { DomainException } from "../../../../core/exceptions/domain-exceptions";
-import { DomainExceptionCode } from "../../../../core/exceptions/domain-exception-codes";
-import mongoose, { Types } from "mongoose";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Pool } from 'pg';
+import { Comment } from "../domain/comment.entity";
 
 @Injectable()
 export class CommentsRepository {
 
-  constructor(@InjectModel(Comment.name) private CommentModel: CommentModelType) {}
+  constructor(
+    @Inject('PG_POOL') private readonly db: Pool,
+  ) {}
 
-  async findById(id: string): Promise<CommentDocument | null> {
-    return this.CommentModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async save(dto: Comment): Promise<number> {
+    if ( dto.id ) {
+      const result = await this.db.query(
+        `
+        UPDATE public."comments"
+        SET 
+          "content"=$1, 
+          "postId"=$2, 
+          "userId"=$3,
+          "deletedAt"=$4,
+          "updatedAt"=CURRENT_TIMESTAMP
+        WHERE id=$5
+        RETURNING id; `,
+        [
+          dto.content,
+          dto.postId,
+          dto.userId,
+          dto.deletedAt,
+          dto.id
+        ]
+      );
+      return result.rows[0].id;
+    } 
+    const result = await this.db.query(
+      `
+      INSERT INTO public."comments" (
+        "content", "postId", "userId", "createdAt", "updatedAt"    
+      )
+        VALUES( $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id;
+      `,
+      [
+        dto.content,
+        dto.postId,
+        dto.userId,
+      ]
+    );
+    return result.rows[0].id;
   }
 
-  async save(comment: CommentDocument): Promise<CommentDocument> {
-    return await comment.save();
+  async findById(id: number): Promise<Comment> {
+    const result = await this.db.query(
+      `
+      SELECT 
+        id, "content", "postId", "userId", "createdAt", "updatedAt", "deletedAt"
+      FROM 
+        public.comments
+      WHERE id = $1 AND "deletedAt" IS NULL;`,
+      [ id ]
+    );
+
+    return result.rows[0];
   }
 
-  async findOrNotFoundFail(id: string): Promise<CommentDocument> {
-    const comment = await this.findById(id);
+  async findOrNotFoundFail(id: number): Promise<Comment> {
+    const result = await this.db.query(
+      `
+      SELECT 
+        id, "content", "postId", "userId", "createdAt", "updatedAt", "deletedAt"
+      FROM 
+        public.comments
+      WHERE id = $1 AND "deletedAt" IS NULL;`,
+      [ id ]
+    );
 
-    if (!comment) {
-      //TODO: replace with domain exception
-      throw new NotFoundException('post not found');
+    if (!result || result.rows.length === 0) {
+      throw new NotFoundException('comment not found');
     }
+
+    return result.rows[0];
+  }
+
+  async verifyUserOwnership ( commentId: number, userId: number): Promise<Comment | null>  {
+    const result = await this.db.query(
+      `
+      SELECT 
+        id, "content", "postId", "userId", "createdAt", "updatedAt", "deletedAt"
+      FROM 
+        public.comments
+      WHERE 
+        id = $1 
+        AND "userId" = $2
+        AND "deletedAt" IS NULL;
+      `,
+      [ commentId, userId ]
+    );
+
+    const row = result.rows[0];
+    if (!row) return null;
+
+    const comment = new Comment(
+      row.content,
+      row.postId,
+      row.userId
+    );
+
+    comment.id = row.id;
+    comment.createdAt = row.createdAt;
+    comment.updatedAt = row.updatedAt;
+    comment.deletedAt = row.deletedAt;
 
     return comment;
-  }
-
-  async verifyUserOwnership ( commentId: string, userId: string): Promise<CommentDocument | null>  {
-    this._checkObjectId( userId );
-    this._checkObjectId( commentId );
-
-    return this.CommentModel.findOne({
-      _id: new Types.ObjectId(commentId),
-      'commentatorInfo.userId': new Types.ObjectId(userId)
-    });
-  }
-
-  private _checkObjectId(id: string) {
-    const isValidId = mongoose.isValidObjectId(id);
-    if ( !isValidId ) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'not fouund',
-      });
-    }
-    return isValidId;
   }
 }

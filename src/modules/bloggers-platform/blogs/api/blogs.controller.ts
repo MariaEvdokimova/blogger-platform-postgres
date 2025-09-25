@@ -40,7 +40,7 @@ export class BlogsController {
   @ApiParam({ name: 'id' }) //для сваггера
   @Get(':id')
   async getBlog(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.queryBus.execute( new GetBlogByIdQuery( id ));
+    return this.queryBus.execute( new GetBlogByIdQuery( Number(id) ));
   }
   
   @UseGuards(OptionalJwtGuard)
@@ -49,9 +49,9 @@ export class BlogsController {
   async getBlogPosts(
     @Param('blogId') blogId: string, 
     @Query() query: GetPostsQueryParams,
-    @UserId() userId: string
+    @UserId() userId: number
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.queryBus.execute( new GetPostsInBlogQuery( blogId, query, userId ));
+    return this.queryBus.execute( new GetPostsInBlogQuery( Number(blogId), query, userId ));
   }
 /*
   @UseGuards(BasicAuthGuard)
