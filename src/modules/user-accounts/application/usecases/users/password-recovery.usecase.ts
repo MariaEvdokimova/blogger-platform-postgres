@@ -42,7 +42,7 @@ export class PasswordRecoveryUseCase
       }
 
       const code = this.uuidService.generate();
-      await this.emailConfirmationRepository.updateEmailConfirmationCode( code, user.id );
+      await this.emailConfirmationRepository.updateEmailConfirmationCode( code, user.id! );
 
       this.eventBus.publish(new UserRegisteredEvent(user.email, code, this.emailExamples.passwordRecoveryEmail));
     } catch {

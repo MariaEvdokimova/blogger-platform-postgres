@@ -9,7 +9,7 @@ import { CommentLikeStatusFactory } from "../factories/comment-like-status.facto
 
 export class UpdateCommentLikeStatusCommand {
   constructor(
-    public commentId: string,
+    public commentId: number,
     public dto: UpdateCommentLikeStatusInputDto,
     public user: UserContextDto
   ) {}
@@ -29,24 +29,22 @@ export class UpdateCommentLikeStatusUseCase
 
   async execute({ commentId, dto, user }: UpdateCommentLikeStatusCommand): Promise<void> {
     const { likeStatus } = dto;
-    const comment = await this.commentsRepository.findOrNotFoundFail( commentId );
+    this.commentsRepository.findOrNotFoundFail( commentId );
    
-    const userCommentStatus = await this.commentLikesRepository.findUserCommentStatus( commentId, user.id );
-    if ( userCommentStatus && userCommentStatus.status === likeStatus) return;
+    let commentLike = await this.commentLikesRepository.findUserCommentStatus( commentId, Number(user.id) );
+    if ( commentLike && commentLike.status === likeStatus) return;
 
-    comment.updateLikesInfo( likeStatus, userCommentStatus?.status );
-
-    await this.commentsRepository.save( comment );
-
-    if ( userCommentStatus) {
-      userCommentStatus.updateLikeStatus( likeStatus );
-      await this.commentLikesRepository.save( userCommentStatus );   
-      return;   
+    if ( !commentLike ) {
+      commentLike = await this.commentLikeStatusFactory.create({ 
+        commentId: Number(commentId), 
+        userId: Number(user.id), 
+        status: likeStatus
+      });
+    } else {
+      commentLike.updateLikeStatus( likeStatus );
     }
 
-    const newLikeStatus = await this.commentLikeStatusFactory.create({ commentId, userId: user.id, status: likeStatus});
-    await this.commentLikesRepository.save( newLikeStatus );
-    
+    await this.commentLikesRepository.save( commentLike );
     return;
   }
 }

@@ -67,7 +67,7 @@ export class EmailConfirmationRepository {
     return result.rows[0].id.toString();
   }
   
-  async findbyUserId( userId: string ): Promise<EmailConfirmation | null> {
+  async findbyUserId( userId: number ): Promise<EmailConfirmation | null> {
     const result = await this.db.query(
       `
       SELECT 
@@ -82,14 +82,14 @@ export class EmailConfirmationRepository {
       WHERE "userId"=$1
       LIMIT 1;
       `,
-      [ Number(userId) ]
+      [ userId ]
     );
 
     return result.rows[0] ?? null;
   }
 
-  async updateEmailConfirmationCode( code: string, UserId: string ): Promise<void> {
-    const emailConfirmation = await this.findbyUserId( UserId );
+  async updateEmailConfirmationCode( code: string, userId: number ): Promise<void> {
+    const emailConfirmation = await this.findbyUserId( userId );
     if ( emailConfirmation ) {
       emailConfirmation.expirationDate = add(new Date(), { hours: 1 });
       emailConfirmation.confirmationCode = code;

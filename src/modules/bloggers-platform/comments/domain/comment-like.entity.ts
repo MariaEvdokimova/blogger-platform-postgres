@@ -1,4 +1,4 @@
-import { CreatePostLikeStatusDomainDto } from "./dto/create-post-like-status.domain.dto";
+import { CreateCommentLikeStatusDomainDto } from "./dto/create-comment-like-status.domain.dto";
 
 export enum LikeStatus {
   None = 'None', 
@@ -6,25 +6,24 @@ export enum LikeStatus {
   Dislike = 'Dislike',
  };
 
-
-export class PostLike {
+export class CommentLike {
   id?: number;
   createdAt: Date = new Date();
   updatedAt: Date = new Date();
   deletedAt: Date | null = null;
 
-  constructor(
-    public postId: number,
+  constructor (
+    public commentId: number,
     public userId: number,
-    public status: LikeStatus
+    public status: LikeStatus,
   ){}
- 
-  static createInstance(dto: CreatePostLikeStatusDomainDto): PostLike {
-    return new PostLike(
-      dto.postId,
+
+  static createInstance(dto: CreateCommentLikeStatusDomainDto): CommentLike {
+    return new CommentLike(
+      dto.commentId,
       dto.userId,
       dto.status,
-    );
+    )
   }
 
   /**

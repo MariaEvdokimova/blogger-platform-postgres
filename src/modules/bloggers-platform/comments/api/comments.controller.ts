@@ -28,9 +28,9 @@ export class CommentsController {
   @Get(':id')
   async getAll(
     @Param('id') id: string,
-    @UserId() userId: string
+    @UserId() userId: number
   ): Promise<CommentViewDto> {
-    return this.queryBus.execute( new GetCommenByIdQuery( id, userId ));
+    return this.queryBus.execute( new GetCommenByIdQuery( Number(id), userId ));
   }
 
   @ApiBearerAuth('JwtAuth')
@@ -43,7 +43,7 @@ export class CommentsController {
     @Body() body: UpdateCommentInputDto, 
     @ExtractUserFromRequest() user: UserContextDto
   ): Promise<void> {
-    return this.commandBus.execute( new UpdateCommentCommand( commentId, body, user ));
+    return this.commandBus.execute( new UpdateCommentCommand( Number(commentId), body, user ));
   }
   
   @ApiBearerAuth('JwtAuth')
@@ -56,7 +56,7 @@ export class CommentsController {
     @Body() body: UpdateCommentLikeStatusInputDto, 
     @ExtractUserFromRequest() user: UserContextDto
   ): Promise<void> {
-    return this.commandBus.execute( new UpdateCommentLikeStatusCommand( commentId, body, user ));
+    return this.commandBus.execute( new UpdateCommentLikeStatusCommand( Number(commentId), body, user ));
   }
 
   @ApiBearerAuth('JwtAuth')
@@ -65,6 +65,6 @@ export class CommentsController {
   @Delete(':commentId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteComment(@Param('commentId') id: string, @ExtractUserFromRequest() user: UserContextDto): Promise<void> {
-    return this.commandBus.execute( new DeleteCommentCommand( id, user ));
+    return this.commandBus.execute( new DeleteCommentCommand( Number(id), user ));
   }
 }

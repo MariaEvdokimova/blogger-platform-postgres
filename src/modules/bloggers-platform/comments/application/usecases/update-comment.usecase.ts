@@ -7,7 +7,7 @@ import { UpdateCommentInputDto } from "../../api/input-dto/comment-update.input-
 
 export class UpdateCommentCommand {
   constructor(
-    public commentId: string,
+    public commentId: number,
     public dto: UpdateCommentInputDto,
     public user: UserContextDto
   ) {}
@@ -24,7 +24,7 @@ export class UpdateCommentUseCase
   async execute({ commentId, dto, user }: UpdateCommentCommand): Promise<void> {
     await this.commentsRepository.findOrNotFoundFail( commentId );
     
-    const commentVerifyed = await this.commentsRepository.verifyUserOwnership( commentId, user.id);
+    const commentVerifyed = await this.commentsRepository.verifyUserOwnership( commentId, Number(user.id));
     if ( !commentVerifyed ) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,

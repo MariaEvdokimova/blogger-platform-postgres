@@ -10,14 +10,14 @@ import { CommentsRepository } from "./../../../../bloggers-platform/comments/inf
 export class CreateCommentByPostIdCommand {
   constructor(
     public dto: CommentInputDto,
-    public post: PostViewDto,
-    public userId: string
+    public postId: number,
+    public userId: number
   ) {}
 }
 
 @CommandHandler(CreateCommentByPostIdCommand)
 export class CreateCommentByPostIdUseCase
-  implements ICommandHandler<CreateCommentByPostIdCommand, string>
+  implements ICommandHandler<CreateCommentByPostIdCommand, number>
 {
   constructor(
     private usersRepository: UsersRepository,
@@ -27,17 +27,16 @@ export class CreateCommentByPostIdUseCase
    // console.log('CreateCommentByPostIdUseCase');
   }
 
-  async execute({ dto, post, userId }: CreateCommentByPostIdCommand): Promise<string> {
-    const user = await this.usersRepository.findById( Number(userId) );
+  async execute({ dto, postId, userId }: CreateCommentByPostIdCommand): Promise<number> {
+    const user = await this.usersRepository.findById( userId );
     if ( !user ) {
-      throw new DomainException({
-      code: DomainExceptionCode.NotFound,
-      message: 'NotFound'
-    });
+        throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'NotFound'
+      });
     }
-    
-    const newComment = await this.commentFactory.create( dto, post, user );
-    const savedComment = await this.commentsRepository.save( newComment );
-    return savedComment._id.toString();
+
+    const newComment = await this.commentFactory.create( dto, postId, user.id! );
+    return this.commentsRepository.save( newComment );
   }
 }

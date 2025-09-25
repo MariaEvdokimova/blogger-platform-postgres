@@ -1,8 +1,7 @@
-import { LikeStatus } from "../extendedLikesInfo.entity";
-
+import { LikeStatus } from "../likes.entity";
 
 export class CreatePostLikeStatusDomainDto {
-  postId:	string;
-  userId: string;
+  postId:	number;
+  userId: number;
   status:	LikeStatus;
 }

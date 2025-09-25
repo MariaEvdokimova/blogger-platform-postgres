@@ -12,8 +12,16 @@ export class TestingController {
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAll() {
-    const tables = ['users', 'emailConfirmation', 'securityDevice', 'blogs', 'posts']; //, 'blogs', 'posts', 'comments' 
-
+    const tables = [
+      'users', 
+      'emailConfirmation', 
+      'securityDevice', 
+      'blogs', 
+      'posts', 
+      'comments', 
+      'commentLikes',
+      'postLikes'
+    ]; 
     const promises = tables.map((table) =>
       this.db.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE;`)
     );

@@ -1,7 +1,7 @@
-import { LikeStatus } from "../likesInfo.entity";
+import { LikeStatus } from "../comment-like.entity";
 
 export class CreateCommentLikeStatusDomainDto {
-  commentId:	string;
-  userId: string;
+  commentId:	number;
+  userId: number;
   status:	LikeStatus;
 }

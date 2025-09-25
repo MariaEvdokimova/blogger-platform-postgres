@@ -2,7 +2,7 @@ import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { BlogsQueryRepository } from "../../infrastructure/query/blogs.query-repository";
 
 export class GetBlogByIdQuery {
-  constructor(public id: string) {}
+  constructor(public id: number) {}
 }
 
 @QueryHandler(GetBlogByIdQuery)
@@ -12,6 +12,6 @@ export class GetBlogByIdQueryHandler
   constructor(private blogsQueryRepository: BlogsQueryRepository) {}
 
   async execute( {id}: GetBlogByIdQuery) {
-    return this.blogsQueryRepository.getToViewByIdOrNotFoundFail( Number(id) );
+    return this.blogsQueryRepository.getToViewByIdOrNotFoundFail( id );
   }
 }

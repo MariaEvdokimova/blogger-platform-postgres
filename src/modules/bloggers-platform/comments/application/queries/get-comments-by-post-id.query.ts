@@ -6,8 +6,9 @@ import { PaginatedViewDto } from "../../../../../core/dto/base.paginated.view-dt
 
 export class GetCommentsByPostIdQuery {
   constructor(
-    public postId: string, 
-    public query: GetCommentsQueryParams
+    public postId: number, 
+    public query: GetCommentsQueryParams,
+    public userId: number,
   ) {}
 }
 
@@ -17,7 +18,7 @@ export class GetCommentsByPostIdQueryHandler
 {
   constructor(private commentsQueryRepository: CommentsQueryRepository) {}
 
-  async execute({ query, postId }: GetCommentsByPostIdQuery) {
-    return this.commentsQueryRepository.getCommentsInPost( query, postId );
+  async execute({ query, postId, userId }: GetCommentsByPostIdQuery) {
+    return this.commentsQueryRepository.getCommentsInPost( query, postId, userId );
   }
 }

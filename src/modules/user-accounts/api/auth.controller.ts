@@ -55,7 +55,6 @@ export class AuthController {
     @ExtractUserFromRequest() user: UserContextDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ accessToken: string }> {
-   
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginUserCommand,
       { accessToken: string, refreshToken: string }
