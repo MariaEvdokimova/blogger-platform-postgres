@@ -1,17 +1,15 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Pool } from 'pg';
 import { User } from "../domain/user.entity";
-import { UserModelType } from "../domain/mongoose/user.entity";
-import { Types } from "mongoose";
-import { InjectModel } from "@nestjs/mongoose";
 import { UserMapper } from "../domain/mappers/user.mapper";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class UsersRepository {
 
   constructor(
     @Inject('PG_POOL') private readonly db: Pool,
-    @InjectModel(User.name) private UserModel: UserModelType
   ) {}
 
   async create(user: User): Promise<string> {
@@ -92,7 +90,10 @@ export class UsersRepository {
     );
 
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('post not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
     }
 
     return result.rows[0];
@@ -142,11 +143,4 @@ export class UsersRepository {
       [ passwordHash, id ]
     );
   }
-
-  async findByUserIds(userIds: Types.ObjectId[]): Promise<User[]>{
-    return this.UserModel.find({
-      _id: { $in: userIds }
-    }).exec();
-  }
-
 }

@@ -1,6 +1,8 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Pool } from 'pg';
 import { Blog } from "../domain/blog.entity";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class BlogsRepository {
@@ -64,7 +66,10 @@ export class BlogsRepository {
     );
 
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('blog not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
     }
 
     const row = result.rows[0];

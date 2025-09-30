@@ -1,7 +1,6 @@
 // import of this config module must be on the top of imports
 import { configModule } from './config-dynamic-module';
 import { DynamicModule, Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { TestingModule } from './modules/testing/testing.module';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
@@ -14,6 +13,7 @@ import { AppController } from './app.controller';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { DatabaseModule } from './database/database.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [

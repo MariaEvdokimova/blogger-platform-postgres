@@ -2,13 +2,13 @@ import { Test, TestingModuleBuilder } from "@nestjs/testing";
 import { EmailService } from "../../src/modules/notifications/email.service";
 import { EmailServiceMock } from "../mock/email-service.mock";
 import { appSetup } from "../../src/setup/app.setup";
-import { Connection } from "mongoose";
-import { getConnectionToken } from "@nestjs/mongoose";
 import { UsersTestManager } from "./users-test-manager";
 import { deleteAllData } from "./delete-all-data";
 import { AppModule } from "../../src/app.module";
 import { BlogsTestManager } from "./blogs-test-manager";
 import { PostsTestManager } from "./posts-test-manager";
+import { Connection } from "mongoose";
+import { getConnectionToken } from "@nestjs/mongoose";
 
 export const initSettings = async (
   //передаем callback, который получает ModuleBuilder, если хотим изменить настройку тестового модуля
@@ -29,7 +29,7 @@ export const initSettings = async (
 
   const app = testingAppModule.createNestApplication();
 
-  appSetup(app);
+  appSetup(app, true);
 
   await app.init();
 

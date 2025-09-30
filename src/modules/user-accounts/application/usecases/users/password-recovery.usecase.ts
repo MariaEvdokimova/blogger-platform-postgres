@@ -1,6 +1,4 @@
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
-import { InjectModel } from "@nestjs/mongoose";
-import { User } from "../../../../user-accounts/domain/mongoose/user.entity";
 import { UsersRepository } from "../../../../user-accounts/infrastructure/users.repository";
 import { DomainException } from "../../../../../core/exceptions/domain-exceptions";
 import { DomainExceptionCode } from "../../../../../core/exceptions/domain-exception-codes";
@@ -22,7 +20,6 @@ export class PasswordRecoveryUseCase
   implements ICommandHandler<PasswordRecoveryCommand>
 {
   constructor(
-    @InjectModel(User.name)
     private usersRepository: UsersRepository,
     private uuidService: UuidService,
     private eventBus: EventBus,

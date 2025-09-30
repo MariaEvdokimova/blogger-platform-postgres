@@ -1,6 +1,8 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Pool } from 'pg';
 import { Comment } from "../domain/comment.entity";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class CommentsRepository {
@@ -73,9 +75,12 @@ export class CommentsRepository {
       WHERE id = $1 AND "deletedAt" IS NULL;`,
       [ id ]
     );
-
+    console.log('result.rows ', result.rows)
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('comment not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not found',
+      });      
     }
 
     return result.rows[0];

@@ -3,6 +3,8 @@ import { Pool } from 'pg';
 import { CommentViewDto } from "../../api/view-dto/comments.view-dto";
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { GetCommentsQueryParams } from "../../api/input-dto/get-comments-query-params.input-dto";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 
 @Injectable()
@@ -48,8 +50,11 @@ export class CommentsQueryRepository {
     );
     
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('comment not found');
-    }
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
+}
 
     const comment = result.rows[0];    
     return CommentViewDto.mapToView({
