@@ -3,6 +3,8 @@ import { Pool } from 'pg';
 import { PostViewDto } from "../../api/view-dto/posts.view-dto";
 import { GetPostsQueryParams } from "../../api/input-dto/get-posts-query-params.input-dto";
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class PostsQueryRepository {
@@ -23,7 +25,10 @@ export class PostsQueryRepository {
     );
 
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('user not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
     }
 
     return PostViewDto.mapToView(result.rows[0]);
@@ -193,7 +198,10 @@ export class PostsQueryRepository {
     );
 
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('user not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
     }
 
     return PostViewDto.mapToView(result.rows[0]);
@@ -216,7 +224,7 @@ export class PostsQueryRepository {
           LEFT JOIN public.blogs b ON p."blogId" = b.id
         WHERE 
           p."deletedAt" IS NULL
-        ORDER BY p."${sortBy}" ${sortDirection}
+        ORDER BY "${sortBy}" ${sortDirection}
         LIMIT $1 OFFSET $2
       ),
       "newestLikesList" AS (

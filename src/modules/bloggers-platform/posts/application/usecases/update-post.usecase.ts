@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { PostsRepository } from "../../infrastructure/posts.repository";
 import { UpdatePostDomainDto } from "../../dto/update-post.dto";
-import { Types } from "mongoose";
 
 export class UpdatePostCommand {
   constructor(

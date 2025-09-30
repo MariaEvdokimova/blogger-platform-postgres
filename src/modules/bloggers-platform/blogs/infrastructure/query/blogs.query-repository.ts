@@ -4,6 +4,8 @@ import { BlogViewDto } from "../../api/view-dto/blogs.view-dto";
 import { GetBlogsQueryParams } from "../../api/input-dto/get-blogs-query-params.input-dto";
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { Blog } from "../../domain/blog.entity";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -28,7 +30,10 @@ export class BlogsQueryRepository {
         );
 
         if (!result || result.rows.length === 0) {
-          throw new NotFoundException('blog not found');
+          throw new DomainException({
+            code: DomainExceptionCode.NotFound,
+            message: 'not fouund',
+          }); 
         }
     
     return result.rows[0];
@@ -51,7 +56,10 @@ export class BlogsQueryRepository {
         );
     
         if (!result || result.rows.length === 0) {
-          throw new NotFoundException('blog not found');
+          throw new DomainException({
+            code: DomainExceptionCode.NotFound,
+            message: 'not fouund',
+           }); 
         }
     
     return BlogViewDto.mapToView(result.rows[0]);

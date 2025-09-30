@@ -29,7 +29,7 @@ export class UpdateCommentLikeStatusUseCase
 
   async execute({ commentId, dto, user }: UpdateCommentLikeStatusCommand): Promise<void> {
     const { likeStatus } = dto;
-    this.commentsRepository.findOrNotFoundFail( commentId );
+    await this.commentsRepository.findOrNotFoundFail( commentId );
    
     let commentLike = await this.commentLikesRepository.findUserCommentStatus( commentId, Number(user.id) );
     if ( commentLike && commentLike.status === likeStatus) return;

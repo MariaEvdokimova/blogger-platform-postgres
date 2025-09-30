@@ -3,6 +3,8 @@ import { Pool } from 'pg';
 import { UserViewDto } from "../../api/view-dto/users.view-dto";
 import { GetUsersQueryParams } from "../../api/input-dto/get-users-query-params.input-dto";
 import { PaginatedViewDto } from "../../../../core/dto/base.paginated.view-dto";
+import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class UsersQueryRepository {
@@ -22,7 +24,10 @@ export class UsersQueryRepository {
     );
 
     if (!result || result.rows.length === 0) {
-      throw new NotFoundException('user not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'not fouund',
+      }); 
     }
 
     return UserViewDto.mapToView(result.rows[0]);

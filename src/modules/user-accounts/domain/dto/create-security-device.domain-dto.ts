@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export class CreateSecurityDeviceDto {
   userId: number;
   deviceId: string;

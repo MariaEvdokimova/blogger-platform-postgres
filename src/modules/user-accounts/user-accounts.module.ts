@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/mongoose/user.entity';
 import { UsersController } from './api/users.controller';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQueryRepository } from './infrastructure/query/users.query-repository';
@@ -23,7 +21,6 @@ import { RegisterUserUseCase } from './application/usecases/users/register-user.
 import { RegistrationConfirmationUseCase } from './application/usecases/users/registration-confirmation.usecase';
 import { RegistrationEmailResendingUseCase } from './application/usecases/users/registration-email-resending.usecase';
 import { UsersFactory } from './application/factories/users.factory';
-import { UsersFactory as UsersFactoryM } from './application/factories/mongoose/users.factory';
 import { PasswordRecoveryUseCase } from './application/usecases/users/password-recovery.usecase';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetUsersQueryHandler } from './application/queries/get-users.query';
@@ -40,7 +37,6 @@ import { SecurityDeviceRepository } from './infrastructure/security-devices.repo
 import { CookieService } from './application/services/cookie.service';
 import { SecurityDevicesFactory } from './application/factories/security-devices.factory';
 import { LogoutUseCase } from './application/usecases/users/logout-user.usecase';
-import { SecurityDevice, SecurityDeviceSchema } from './domain/mongoose/security-device.entity';
 import { EmailConfirmationRepository } from './infrastructure/email-confirmation.repository';
 import { EmailConfirmationFactory } from './application/factories/email-confirmation.factory';
  
@@ -68,10 +64,6 @@ const queryHandlers = [
 @Module({
   imports: [
     CqrsModule,
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: SecurityDevice.name, schema: SecurityDeviceSchema}, 
-    ]),
     NotificationsModule,
   ],
   controllers: [UsersController, AuthController, SecurityDevicesController],
@@ -110,7 +102,6 @@ const queryHandlers = [
     JwtStrategy,
     LocalStrategy,
     UsersFactory,    
-    UsersFactoryM, //!!!!!!!!!!!!
     UserAccountsConfig,
     SecurityDevicesQueryRepository,
     SecurityDeviceRepository,

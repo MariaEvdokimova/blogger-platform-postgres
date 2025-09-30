@@ -3,7 +3,6 @@ import { GetPostsQueryParams } from "../../api/input-dto/get-posts-query-params.
 import { PaginatedViewDto } from "../../../../../core/dto/base.paginated.view-dto";
 import { PostViewDto } from "../../api/view-dto/posts.view-dto";
 import { PostsQueryRepository } from "../../infrastructure/query/posts.query-repository";
-import { PostsLikesQueryRepository } from "../../infrastructure/query/post-likes.query.repository";
 
 export class GetPostsQuery {
   constructor(
@@ -18,7 +17,6 @@ export class GetPostsQueryHandler
 {
   constructor(
     private postsQueryRepository: PostsQueryRepository,
-    private postsLikesQueryRepository: PostsLikesQueryRepository,
   ) {}
 
   async execute({ dto, userId }: GetPostsQuery) {
